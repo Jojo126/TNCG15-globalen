@@ -7,7 +7,15 @@ red, green and blue channel.
 
 class ColorDbl
 {
-	private:
+	public:
 		double R, G, B;
+
+		ColorDbl() 
+		: R{ 1.0 }, G{ 1.0 }, B{ 1.0 }{};
+
+		ColorDbl(double R, double G, double B)
+		: R{ R }, G{ G }, B{ B } {};
+		
+		~ColorDbl() {};
 };
 

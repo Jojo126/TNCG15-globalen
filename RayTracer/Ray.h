@@ -6,16 +6,27 @@ the end point is located. The ray color is a ColorDbl.
 */
 
 #pragma once
-#include "Vertex.h"
-#include <list>
 #include "Triangle.h"
 #include "ColorDbl.h"
+#include "Vertex.h"
+#include <list>
+
+class Triangle;
 
 class Ray
 {
-	private:
-		//std::list<Vertex> vertList; //ska innehålla start- & endpoints
-		//Triangle triangle;
+	public:
+		std::list<Vertex>& vertList; //ska innehålla start- & endpoints
+		Triangle& triangle;
 		ColorDbl rgb;
+		
+		/*
+		Ray(Vertex startP)
+		//: rgb{ 0.0, 0.0, 0.0 } 
+		{
+			//vertList.insert(startP);
+		};*/
+		
+		~Ray() {};
 };
 

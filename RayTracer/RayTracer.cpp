@@ -1,8 +1,13 @@
 #include <iostream>
 #include "BmpSave.h"
+#include "Camera.h"
+#include "Vertex.h"
+#include "Pixel.h"
 
 int main()
 {
+	Camera myCamera(Vertex(-2,0,0,1),Vertex(-1,0,0,1), true);
+
 	// Specs for bitmap
 	const int HEIGHT = 800;
 	const int WIDTH = 800;

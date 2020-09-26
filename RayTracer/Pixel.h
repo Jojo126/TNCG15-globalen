@@ -12,6 +12,8 @@ class Pixel
 {
 	private:
 		ColorDbl rgb;
-		Ray& interRays;
+		Ray interRays;
+	public:
+		Pixel() = default;
 };
 

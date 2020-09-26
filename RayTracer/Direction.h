@@ -9,8 +9,9 @@ It has the three components of a direction vector x, y, z.
 class Direction
 {
 	private:
-		std::vector<int> direction; // (x,y,z)
+		std::vector<double> direction; // (x,y,z)
 	public:
+		Direction() = default;
 		// Use cross product to compute the normal from the triangles normal from its vertices
 		Direction(Vertex v1, Vertex v2, Vertex v3) {
 			direction[0] = (v2.y - v1.y) * (v3.z - v1.z) - (v2.z - v1.z) * (v3.y - v1.y);

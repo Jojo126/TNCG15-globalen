@@ -9,6 +9,7 @@ class Vertex
 {
 	public:
 		int x, y, z, w;
+		Vertex() = default;
 		Vertex(int x, int y, int z, int w);
 };
 

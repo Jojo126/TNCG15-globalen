@@ -15,12 +15,18 @@ triangle and assign the triangle color to the ray.
 
 class Camera
 {
-	private:
-		Vertex eye1, eye2;
-		bool useEye1;
-		Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
-	public:
-		void render(); 
+private:
+	Vertex eye1, eye2;
+	bool useEye1;
+	 //borde hämta mått från RayTracer.cpp
+public:
+	Camera(Vertex eye1, Vertex eye2, bool useEye1)
+		: eye1( eye1 ), eye2( eye2 ), useEye1( useEye1 ) {
+		//Pixel image[WIDTH][HEIGHT];
+		std::vector< std::vector<Pixel> > mesh;
+	}
+		// render() -> Pixel -> Ray -> Triangle -> rayIntersection() -> ColorDbl från Triangle
+		void render();
 		// render() ska loopa genom alla pixlar i image
 		// för varje pixel, skapa en ny ray som skjuter genom den pixeln (behöver inte vara genom pixelns mitt)
 		// följ rayn och beräkna pixelns färg, följ den till första skärningspunkt och tilldela rayn den korsade triangelns färg

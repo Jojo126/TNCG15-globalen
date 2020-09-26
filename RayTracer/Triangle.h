@@ -19,6 +19,7 @@ class Triangle
 		ColorDbl rgb;
 		Direction normal;
 	public:
+		Triangle() = default;
 		Triangle(Vertex v1, Vertex v2, Vertex v3, ColorDbl rgb, Direction normal);
 		/*
 		Vertex rayIntersection(Ray arg) {

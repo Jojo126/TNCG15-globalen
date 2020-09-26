@@ -9,5 +9,7 @@ class ColorDbl
 {
 	private:
 		double R, G, B;
+	public:
+		ColorDbl(double R, double G, double B);
 };
 

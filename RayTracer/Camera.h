@@ -17,9 +17,15 @@ class Camera
 {
 	private:
 		Vertex eye1, eye2;
-		bool useFirstEye;
+		bool useEye1;
 		Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
 	public:
-		void render();
+		void render(); 
+		// render() ska loopa genom alla pixlar i image
+		// för varje pixel, skapa en ny ray som skjuter genom den pixeln (behöver inte vara genom pixelns mitt)
+		// följ rayn och beräkna pixelns färg, följ den till första skärningspunkt och tilldela rayn den korsade triangelns färg
+		
+		void createimage(); //ska basically göra samma som det i main() som just nu genererar en godtycklig bild
+
 };
 

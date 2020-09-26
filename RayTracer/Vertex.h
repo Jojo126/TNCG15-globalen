@@ -7,7 +7,8 @@ coordinates).
 
 class Vertex
 {
-	private:
+	public:
 		int x, y, z, w;
+		Vertex(int x, int y, int z, int w);
 };
 

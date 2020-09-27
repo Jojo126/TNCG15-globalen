@@ -9,10 +9,9 @@ the end point is located. The ray color is a ColorDbl.
 #include "Triangle.h"
 #include "ColorDbl.h"
 #include "Vertex.h"
-#include "Scene.h"
 #include <cmath>
 
-
+class Scene;
 class Triangle;
 
 class Ray

@@ -12,20 +12,61 @@ intersection point to the Ray arg
 #pragma once
 #include "Triangle.h"
 #include "Ray.h"
+#include <vector>
 
 class Scene
 {
 	public:
+		std::vector<Vertex> mVertices;
+		std::vector<Triangle> mTriangles;
+		
+		Scene() {
+			mVertices.push_back(Vertex(0.0, 6.0, 5.0, 1.0));
+			mVertices.push_back(Vertex(0.0, 6.0, -5.0, 1.0));
+			mVertices.push_back(Vertex(10.0, 6.0, 5.0, 1.0));
+			mVertices.push_back(Vertex(10.0, 6.0, -5.0, 1.0));
+			mVertices.push_back(Vertex(13.0, 0.0, 5.0, 1.0));
+			mVertices.push_back(Vertex(13.0, 0.0, -5.0, 1.0));
+			mVertices.push_back(Vertex(10.0, -6.0, 5.0, 1.0));
+			mVertices.push_back(Vertex(10.0, -6.0, -5.0, 1.0));
+			mVertices.push_back(Vertex(0.0, -6.0, 5.0, 1.0));
+			mVertices.push_back(Vertex(0.0, -6.0, -5.0, 1.0));
+			mVertices.push_back(Vertex(-3.0, 0.0, 5.0, 1.0));
+			mVertices.push_back(Vertex(-3.0, 0.0, -5.0, 1.0));
+			mVertices.push_back(Vertex(5.0, 0.0, 5.0, 1.0));
+			mVertices.push_back(Vertex(5.0, 0.0, -5.0, 1.0));
 
-		/*Triangle floor1, floor2, floor3, floor4, floor5, floor6, // ska vara vita
-			ceiling1, ceiling2, ceiling3, ceiling4, ceiling5, ceiling6, // ska vara vita
-			wall1p1, wall1p2, // väggarna ska ha olika färger
-			wall2p1, wall2p2,
-			wall3p1, wall3p2,
-			wall4p1, wall4p2,
-			wall5p1, wall5p2,
-			wall6p1, wall6p2;
-		*/
+			// Ceiling
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(10), mVertices.at(0), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(10), mVertices.at(0))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(0), mVertices.at(2), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(0), mVertices.at(2))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(2), mVertices.at(4), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(2), mVertices.at(4))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(4), mVertices.at(6), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(4), mVertices.at(6))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(6), mVertices.at(8), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(6), mVertices.at(8))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(8), mVertices.at(10), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(8), mVertices.at(10))));
+			
+			// Floor
+			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(1), mVertices.at(11), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(13), mVertices.at(1), mVertices.at(11))));
+			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(3), mVertices.at(1), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(13), mVertices.at(3), mVertices.at(1))));
+			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(5), mVertices.at(3), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(13), mVertices.at(5), mVertices.at(3))));
+			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(7), mVertices.at(5), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(13), mVertices.at(7), mVertices.at(5))));
+			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(9), mVertices.at(7), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(13), mVertices.at(9), mVertices.at(7))));
+			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(11), mVertices.at(9), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(13), mVertices.at(11), mVertices.at(9))));
+
+			// Walls
+			mTriangles.push_back(Triangle(mVertices.at(10), mVertices.at(11), mVertices.at(1), ColorDbl(255.0, 0.0, 0.0), Direction(mVertices.at(10), mVertices.at(11), mVertices.at(1))));
+			mTriangles.push_back(Triangle(mVertices.at(10), mVertices.at(1), mVertices.at(0), ColorDbl(255.0, 0.0, 0.0), Direction(mVertices.at(10), mVertices.at(1), mVertices.at(0))));
+			mTriangles.push_back(Triangle(mVertices.at(0), mVertices.at(1), mVertices.at(3), ColorDbl(0.0, 255.0, 0.0), Direction(mVertices.at(0), mVertices.at(1), mVertices.at(3))));
+			mTriangles.push_back(Triangle(mVertices.at(0), mVertices.at(3), mVertices.at(2), ColorDbl(0.0, 255.0, 0.0), Direction(mVertices.at(0), mVertices.at(3), mVertices.at(2))));
+			mTriangles.push_back(Triangle(mVertices.at(2), mVertices.at(3), mVertices.at(5), ColorDbl(0.0, 0.0, 255.0), Direction(mVertices.at(2), mVertices.at(3), mVertices.at(5))));
+			mTriangles.push_back(Triangle(mVertices.at(2), mVertices.at(5), mVertices.at(4), ColorDbl(0.0, 0.0, 255.0), Direction(mVertices.at(2), mVertices.at(5), mVertices.at(4))));
+			mTriangles.push_back(Triangle(mVertices.at(4), mVertices.at(5), mVertices.at(7), ColorDbl(255.0, 255.0, 0.0), Direction(mVertices.at(4), mVertices.at(5), mVertices.at(7))));
+			mTriangles.push_back(Triangle(mVertices.at(4), mVertices.at(7), mVertices.at(6), ColorDbl(255.0, 255.0, 0.0), Direction(mVertices.at(4), mVertices.at(7), mVertices.at(6))));
+			mTriangles.push_back(Triangle(mVertices.at(6), mVertices.at(7), mVertices.at(9), ColorDbl(255.0, 0.0, 255.0), Direction(mVertices.at(6), mVertices.at(7), mVertices.at(9))));
+			mTriangles.push_back(Triangle(mVertices.at(6), mVertices.at(9), mVertices.at(8), ColorDbl(255.0, 0.0, 255.0), Direction(mVertices.at(6), mVertices.at(9), mVertices.at(8))));
+			mTriangles.push_back(Triangle(mVertices.at(8), mVertices.at(9), mVertices.at(11), ColorDbl(0.0, 255.0, 255.0), Direction(mVertices.at(8), mVertices.at(9), mVertices.at(11))));
+			mTriangles.push_back(Triangle(mVertices.at(8), mVertices.at(11), mVertices.at(10), ColorDbl(0.0, 255.0, 255.0), Direction(mVertices.at(8), mVertices.at(11), mVertices.at(10))));
+		}
+			
 
 		/*Triangle intersectedTriangle(Ray arg) {
 			//loopa igenom varje triangel och kalla på  Triangle::rayIntersection-metod för att se om den blir intersected

@@ -8,12 +8,15 @@ coordinates).
 class Vertex
 {
 	public:
-		int x, y, z, w;
+		double x, y, z, w;
 
 		Vertex() = default;
 		
 		Vertex(int x, int y, int z, int w) 
 		: x{ x }, y{ y }, z{ z }, w{ w } {};
+
+		Vertex(double x, double y, double z, double w)
+			: x{ x }, y{ y }, z{ z }, w{ w } {};
 		
 		~Vertex() {};
 };

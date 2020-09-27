@@ -12,6 +12,7 @@ triangle and assign the triangle color to the ray.
 #pragma once
 #include "Vertex.h"
 #include "Pixel.h"
+#include "Ray.h"
 
 class Camera
 {
@@ -23,10 +24,14 @@ class Camera
 
 		void render() {
 			
-			for (int x = 0; x < 800; x++) {
-				for (int y = 0; y < 800; y++) {
-					
-
+			for (int i = 0; i < 800; i++) {
+				for (int j = 0; j < 800; j++) {
+					/*
+					if (useFirstEye)
+						Ray(eye1);
+					else
+						Ray(eye2);
+					*/
 				}
 			}
 		}

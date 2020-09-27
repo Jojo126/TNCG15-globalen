@@ -9,23 +9,29 @@ the end point is located. The ray color is a ColorDbl.
 #include "Triangle.h"
 #include "ColorDbl.h"
 #include "Vertex.h"
-#include <list>
+#include "Scene.h"
+#include <cmath>
+
 
 class Triangle;
 
 class Ray
 {
 	public:
-		std::list<Vertex>& vertList; //ska innehålla start- & endpoints
+		//std::list<Vertex>& vertList; //ska innehålla start- & endpoints
+		Vertex startPoint, endPoint;
 		Triangle& triangle;
 		ColorDbl rgb;
 		
-		/*
-		Ray(Vertex startP)
-		//: rgb{ 0.0, 0.0, 0.0 } 
-		{
-			//vertList.insert(startP);
-		};*/
+		
+		Ray(Vertex startP, int i, int j) {
+			startPoint = startP;
+
+			double deltaY = rand() / RAND_MAX, deltaZ = rand() / RAND_MAX;
+			endPoint = Vertex(0.0, (i - 401 + deltaY) * 0.0025, (j - 401 + deltaZ) * 0.0025, 1.0);
+	
+			triangle = Scene::intersectedTriangle(this);
+		};
 		
 		~Ray() {};
 };

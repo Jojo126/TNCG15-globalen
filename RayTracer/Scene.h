@@ -32,7 +32,7 @@ class Scene
 			//It then passes references to the triangle and the intersection point to the Ray arg. Lite osäker på vad de innebär
 
 			for (int z = 0; z < 24; z++) {
-
+				Triangle::rayIntersection(arg);
 			}
 
 		}

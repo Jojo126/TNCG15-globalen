@@ -20,17 +20,18 @@ class Ray
 	public:
 		//std::list<Vertex>& vertList; //ska innehålla start- & endpoints
 		Vertex startPoint, endPoint;
-		Triangle& triangle;
+		//Triangle& triangle;
 		ColorDbl rgb;
 		
 		
-		Ray(Vertex startP, int i, int j) {
+		Ray(Vertex startP, int i, int j) 
+		{
 			startPoint = startP;
 
 			double deltaY = rand() / RAND_MAX, deltaZ = rand() / RAND_MAX;
 			endPoint = Vertex(0.0, (i - 401 + deltaY) * 0.0025, (j - 401 + deltaZ) * 0.0025, 1.0);
-	
-			triangle = Scene::intersectedTriangle(this);
+
+			//triangle = Scene::intersectedTriangle(this);
 		};
 		
 		~Ray() {};

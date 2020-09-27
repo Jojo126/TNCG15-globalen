@@ -17,7 +17,7 @@ class Scene
 {
 	public:
 
-		Triangle floor1, floor2, floor3, floor4, floor5, floor6, // ska vara vita
+		/*Triangle floor1, floor2, floor3, floor4, floor5, floor6, // ska vara vita
 			ceiling1, ceiling2, ceiling3, ceiling4, ceiling5, ceiling6, // ska vara vita
 			wall1p1, wall1p2, // väggarna ska ha olika färger
 			wall2p1, wall2p2,
@@ -25,9 +25,9 @@ class Scene
 			wall4p1, wall4p2,
 			wall5p1, wall5p2,
 			wall6p1, wall6p2;
+		*/
 
-
-		Triangle intersectedTriangle(Ray arg) {
+		/*Triangle intersectedTriangle(Ray arg) {
 			//loopa igenom varje triangel och kalla på  Triangle::rayIntersection-metod för att se om den blir intersected
 			//It then passes references to the triangle and the intersection point to the Ray arg. Lite osäker på vad de innebär
 
@@ -35,6 +35,6 @@ class Scene
 				Triangle::rayIntersection(arg);
 			}
 
-		}
+		}*/
 };
 

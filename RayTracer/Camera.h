@@ -15,11 +15,20 @@ triangle and assign the triangle color to the ray.
 
 class Camera
 {
-	private:
+	public:
+
 		Vertex eye1, eye2;
 		bool useFirstEye;
 		Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
-	public:
-		void render();
+
+		void render() {
+			
+			for (int x = 0; x < 800; x++) {
+				for (int y = 0; y < 800; y++) {
+					
+
+				}
+			}
+		}
 };
 

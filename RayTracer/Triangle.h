@@ -3,7 +3,7 @@ The triangle is defined by three objects of the class Vertex.
 The Triangle has a color, which we represent by an instance of ColorDbl.
 The triangle’s normal direction is stored in an instance of Direction.
 It has a method rayIntersection(Ray arg) that computes the intersection
-between a Ray and the Triangle with the M¨oller-Trumbore algorithm.
+between a Ray and the Triangle with the Möller-Trumbore algorithm.
 */
 
 #pragma once
@@ -28,9 +28,9 @@ class Triangle
 		
 		~Triangle() {};
 
-		/*
+		// beräkna skärningspunkt mellan triangeln och strålen
 		Vertex rayIntersection(Ray arg) {
-			// beräkna skärningspunkt mellan triangeln och strålen
-		}*/
+			
+		}
 };
 

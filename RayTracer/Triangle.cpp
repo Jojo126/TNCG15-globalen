@@ -15,17 +15,51 @@ bool Triangle::rayIntersection(Ray myRay) { //pass by refernce?
     
     // double
     double a,f,u,v;
-    Vertex h, s, q;
+    Direction h, s, q;
 
     // Två av triangelns kanter (vektor)
-    //Direction edge1 = vertex2 - vertex1;
-    //Direction edge2 = vertex3 - vertex1;
+    Vertex edge1 = vertex2 - vertex1;
+    Direction dirEdge1 = Direction(edge1.x, edge1.y, edge1.z);
+    Vertex edge2 = vertex3 - vertex1;
+    Direction dirEdge2 = Direction(edge2.x, edge2.y, edge2.z);
 
+    Direction rayDir = myRay.dir;
+
+    h = rayDir.crossProduct(dirEdge2); // h är kryssprodukt mellan h & edge2
+    a = dirEdge1.dotProduct(h);        // a är skalärprodukt mellan h (kryssprodukten) & edge1
     
+    if (a > -EPSILON && a < EPSILON)
+        return false;    // This ray is parallel to this triangle.
 
-    //myRay.endPoint = Vertex();
+
+    f = 1.0/a;      // f (skalär) normaliserar
+    Vertex tempS = myRay.startPoint - vertex1;  // vektor
+    s = Direction(tempS.x, tempS.y, tempS.z);
+    u = f * s.dotProduct(h);  // u (skalär) mellan s (vektor) & h (vektor), f normaliserar
+
+    if (u < 0.0 || u > 1.0)
+        return false;
+
+
+    q = s.crossProduct(dirEdge1);  // q (vektor) är kryssprodukt mellan s (vektor) & edge1
+    v = f * rayDir.dotProduct(q); // v (skalär) är skalärprodukt mellan inkommande Ray (direction?) & vektor q
+
+    if (v < 0.0 || u + v > 1.0)
+        return false;
+
+
+    // t är the intersectionPoint !!
+    double t = f * dirEdge2.dotProduct(q);
+
+    if (t > EPSILON) // ray intersection
+    {
+        myRay.endPoint = myRay.startPoint + Vertex(rayDir.x,rayDir.y,rayDir.z,1) * t;
+        return true;
+    }
+    else // This means that there is a line intersection but not a ray intersection.
+        return false;
             
-    return true;
+    return false;
 }
 
 

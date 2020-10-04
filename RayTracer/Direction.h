@@ -26,11 +26,10 @@ class Direction
 
 		
 		// Kryssprodukt
-		// Direction crossProduct(Direction inV);
+		Direction crossProduct(Direction inV);
 
 		/// Skalärprodukt
-		// double dotProduct(Direction inV);
-
+		double dotProduct(Direction inV);
 
 };
 

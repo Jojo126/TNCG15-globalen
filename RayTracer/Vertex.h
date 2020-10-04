@@ -24,5 +24,7 @@ class Vertex
 
 		// Overload '-' operator
 		Vertex operator-(Vertex inV);
+		Vertex operator+(Vertex inV);
+		Vertex operator*(double db);
 };
 

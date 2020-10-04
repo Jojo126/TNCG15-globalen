@@ -29,8 +29,7 @@ class Triangle
 		~Triangle() {};
 
 		// beräkna skärningspunkt mellan triangeln och strålen
-		/*Vertex rayIntersection(Ray arg) {
-			
-		}*/
+        bool rayIntersection(Ray myRay);
+	
 };
 

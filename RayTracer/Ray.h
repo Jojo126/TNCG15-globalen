@@ -4,11 +4,15 @@ point. You can put the vertices into a vertex list and use references to
 these points in Ray. Ray contains a reference to the triangle on which
 the end point is located. The ray color is a ColorDbl.
 */
+//#ifndef TRIANGLE_H
+//#define TRIANGLE_H
+
 
 #pragma once
 #include "Triangle.h"
 #include "ColorDbl.h"
 #include "Vertex.h"
+#include "Direction.h"
 #include <cmath>
 
 class Scene;
@@ -21,18 +25,13 @@ class Ray
 		Vertex startPoint, endPoint;
 		//Triangle& triangle;
 		ColorDbl rgb;
-		
-		
-		Ray(Vertex startP, int i, int j) 
-		{
-			startPoint = startP;
+		Direction dir;
 
-			double deltaY = rand() / RAND_MAX, deltaZ = rand() / RAND_MAX;
-			endPoint = Vertex(0.0, (i - 401 + deltaY) * 0.0025, (j - 401 + deltaZ) * 0.0025, 1.0);
-
-			//triangle = Scene::intersectedTriangle(this);
-		};
+		Ray(Vertex startP, int i, int j);
+		
+		//triangle = Scene::intersectedTriangle(this);
 		
 		~Ray() {};
 };
 
+//#endif

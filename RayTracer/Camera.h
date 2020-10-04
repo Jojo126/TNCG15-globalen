@@ -22,18 +22,14 @@ class Camera
 		bool useFirstEye;
 		Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
 
-		void render() {
-			
-			for (int i = 0; i < 800; i++) {
-				for (int j = 0; j < 800; j++) {
-					/*
-					if (useFirstEye)
-						Ray(eye1);
-					else
-						Ray(eye2);
-					*/
-				}
-			}
-		}
+		// Constructor/Destructors
+		Camera() = default;
+		~Camera() {};
+
+		void render();
+
+		//void createImage();
+		// i createimage: loopa igenom alla pixlar, i,j, och de tre kanalerna R,G,B, för att hitta i_max (högsta intensitetsvärdet i antingen R,G, eller B) 
+		// (blir fem nestade loopar)
 };
 

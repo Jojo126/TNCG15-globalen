@@ -21,5 +21,8 @@ class Vertex
 			: x{ x }, y{ y }, z{ z }, w{ w } {};
 		
 		~Vertex() {};
+
+		// Overload '-' operator
+		Vertex operator-(Vertex inV);
 };
 

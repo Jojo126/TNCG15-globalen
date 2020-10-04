@@ -22,5 +22,15 @@ class Direction
 		}
 
 		~Direction() {};
+
+
+		
+		// Kryssprodukt
+		// Direction crossProduct(Direction inV);
+
+		/// Skalärprodukt
+		// double dotProduct(Direction inV);
+
+
 };
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "BmpSave.h"
+#include <glm/glm.hpp>
 
 int main()
 {

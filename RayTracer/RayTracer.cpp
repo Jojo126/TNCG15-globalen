@@ -1,14 +1,25 @@
 #include <iostream>
+#include "Scene.h"
+#include "Camera.h"
 #include "BmpSave.h"
 #include <glm/glm.hpp>
 
 int main()
 {
+	// Creates an empty room
+	Scene scene;
+
+	// TODO: Create a camera
+	Camera camera;
+
 	// Specs for bitmap
 	const int HEIGHT = 800;
 	const int WIDTH = 800;
 	static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
 	char* imageFileName = (char*) "bitmapImage.bmp";
+
+	// TODO: Render the scene
+	camera.render(scene);
 
 	// Draw/store image
 	int i, j;

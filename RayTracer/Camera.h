@@ -11,8 +11,10 @@ triangle and assign the triangle color to the ray.
 
 #pragma once
 #include "Vertex.h"
-#include "Pixel.h"
-#include "Ray.h"
+#include "Scene.h"
+#include <iostream>
+//#include "Pixel.h"
+//#include "Ray.h"
 
 class Camera
 {
@@ -20,13 +22,13 @@ class Camera
 
 		Vertex eye1, eye2;
 		bool useFirstEye;
-		Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
+		//Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
 
 		// Constructor/Destructors
 		Camera() = default;
 		~Camera() {};
 
-		void render();
+		void render(Scene scene);
 
 		//void createImage();
 		// i createimage: loopa igenom alla pixlar, i,j, och de tre kanalerna R,G,B, för att hitta i_max (högsta intensitetsvärdet i antingen R,G, eller B) 

@@ -10,10 +10,12 @@ intersection point to the Ray arg
 */
 
 #pragma once
+#include <iostream>
 #include "Triangle.h"
 #include "Ray.h"
 #include <vector>
 
+// TODO: replace vertex with glm vectors?
 class Scene
 {
 	public:
@@ -21,6 +23,9 @@ class Scene
 		std::vector<Triangle> mTriangles;
 		
 		Scene() {
+			std::cout << "creating room..." << std::endl;
+
+			// Vertices used for room mesh
 			mVertices.push_back(Vertex(0.0, 6.0, 5.0, 1.0));
 			mVertices.push_back(Vertex(0.0, 6.0, -5.0, 1.0));
 			mVertices.push_back(Vertex(10.0, 6.0, 5.0, 1.0));
@@ -65,6 +70,8 @@ class Scene
 			mTriangles.push_back(Triangle(mVertices.at(6), mVertices.at(9), mVertices.at(8), ColorDbl(255.0, 0.0, 255.0), Direction(mVertices.at(6), mVertices.at(9), mVertices.at(8))));
 			mTriangles.push_back(Triangle(mVertices.at(8), mVertices.at(9), mVertices.at(11), ColorDbl(0.0, 255.0, 255.0), Direction(mVertices.at(8), mVertices.at(9), mVertices.at(11))));
 			mTriangles.push_back(Triangle(mVertices.at(8), mVertices.at(11), mVertices.at(10), ColorDbl(0.0, 255.0, 255.0), Direction(mVertices.at(8), mVertices.at(11), mVertices.at(10))));
+
+			std::cout << "created room" << std::endl;
 		}
 			
 

@@ -12,7 +12,7 @@ intersection point to the Ray arg
 #pragma once
 #include <iostream>
 #include "Triangle.h"
-#include "Ray.h"
+//#include "Ray.h"
 #include <vector>
 
 // TODO: replace vertex with glm vectors?

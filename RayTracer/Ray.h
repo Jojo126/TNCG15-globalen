@@ -28,6 +28,7 @@ class Ray
 		Direction dir;
 
 		Ray(Vertex startP, int i, int j);
+		Ray() = default;
 		
 		//triangle = Scene::intersectedTriangle(this);
 		

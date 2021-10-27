@@ -162,6 +162,7 @@
     <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BmpSave.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ColorDbl.h" />
     <ClInclude Include="Direction.h" />

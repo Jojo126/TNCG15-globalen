@@ -20,7 +20,8 @@ class Camera
 {
 	public:
 
-		Vertex eye1, eye2;
+		Vertex eye1 = Vertex(-2.0, 0.0, 0.0, 1.0);
+		Vertex eye2 = Vertex(-1.0, 0.0, 0.0, 1.0);
 		bool useFirstEye;
 		//Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
 

@@ -6,7 +6,7 @@ void Camera::render(Scene scene) {
 
 	for (int i = 0; i < 800; i++) {
 		for (int j = 0; j < 800; j++) {
-
+			
 			if (useFirstEye)
 				Ray newRay = Ray(eye1, i, j);
 			else

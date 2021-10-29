@@ -14,6 +14,8 @@ int main()
 	Camera camera;
 
 	// Specs for bitmap
+	//const int HEIGHT = 800;
+	//const int WIDTH = 800;
 	const int HEIGHT = 10;
 	const int WIDTH = 10;
 	static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
@@ -36,8 +38,8 @@ int main()
 			image[i][j][1] = (unsigned char)(j * 255 / WIDTH);				    ///green
 			image[i][j][0] = (unsigned char)((i + j) * 255 / (HEIGHT + WIDTH)); ///blue
 
-			float y = -1.0 + float(i) / 800;
-			float z = -1.0 + float(j) / 800;
+			float y = -1.0 + float(i) / WIDTH;
+			float z = -1.0 + float(j) / HEIGHT;
 
 			Vertex pixelCoord = Vertex(0.0, y, z, 1.0);
 			Vertex startPoint = camera.eye1;

@@ -2,8 +2,9 @@
 It has three double precision variables that contain the intensities in the
 red, green and blue channel.
 */
-
+#include <iostream>
 #pragma once
+
 
 class ColorDbl
 {
@@ -16,6 +17,11 @@ class ColorDbl
 		ColorDbl(double R, double G, double B)
 		: R{ R }, G{ G }, B{ B } {};
 		
+		friend std::ostream& operator<<(std::ostream& os, const ColorDbl& cd) {
+			os << '(' << cd.R << ',' << cd.G << ',' << cd.B << ')';
+			return os;
+		}
+
 		~ColorDbl() {};
 };
 

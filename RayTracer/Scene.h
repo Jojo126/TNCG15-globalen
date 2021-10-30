@@ -26,20 +26,20 @@ class Scene
 			std::cout << "creating room..." << std::endl;
 
 			// Vertices used for room mesh
-			mVertices.push_back(Vertex(0.0, 6.0, 5.0, 1.0));
-			mVertices.push_back(Vertex(0.0, 6.0, -5.0, 1.0));
-			mVertices.push_back(Vertex(10.0, 6.0, 5.0, 1.0));
-			mVertices.push_back(Vertex(10.0, 6.0, -5.0, 1.0));
-			mVertices.push_back(Vertex(13.0, 0.0, 5.0, 1.0));
-			mVertices.push_back(Vertex(13.0, 0.0, -5.0, 1.0));
-			mVertices.push_back(Vertex(10.0, -6.0, 5.0, 1.0));
-			mVertices.push_back(Vertex(10.0, -6.0, -5.0, 1.0));
-			mVertices.push_back(Vertex(0.0, -6.0, 5.0, 1.0));
-			mVertices.push_back(Vertex(0.0, -6.0, -5.0, 1.0));
-			mVertices.push_back(Vertex(-3.0, 0.0, 5.0, 1.0));
-			mVertices.push_back(Vertex(-3.0, 0.0, -5.0, 1.0));
-			mVertices.push_back(Vertex(5.0, 0.0, 5.0, 1.0));
-			mVertices.push_back(Vertex(5.0, 0.0, -5.0, 1.0));
+			mVertices.push_back(Vertex(0.0, 6.0, 5.0));
+			mVertices.push_back(Vertex(0.0, 6.0, -5.0));
+			mVertices.push_back(Vertex(10.0, 6.0, 5.0));
+			mVertices.push_back(Vertex(10.0, 6.0, -5.0));
+			mVertices.push_back(Vertex(13.0, 0.0, 5.0));
+			mVertices.push_back(Vertex(13.0, 0.0, -5.0));
+			mVertices.push_back(Vertex(10.0, -6.0, 5.0));
+			mVertices.push_back(Vertex(10.0, -6.0, -5.0));
+			mVertices.push_back(Vertex(0.0, -6.0, 5.0));
+			mVertices.push_back(Vertex(0.0, -6.0, -5.0));
+			mVertices.push_back(Vertex(-3.0, 0.0, 5.0));
+			mVertices.push_back(Vertex(-3.0, 0.0, -5.0));
+			mVertices.push_back(Vertex(5.0, 0.0, 5.0));
+			mVertices.push_back(Vertex(5.0, 0.0, -5.0));
 
 			// Ceiling
 			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(10), mVertices.at(0), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(10), mVertices.at(0))));

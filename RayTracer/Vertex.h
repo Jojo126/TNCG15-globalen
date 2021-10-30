@@ -9,7 +9,7 @@ coordinates).
 class Vertex
 {
 	public:
-		glm::vec4 coords;
+		glm::vec3 coords;
 
 		Vertex() = default;
 		
@@ -18,8 +18,8 @@ class Vertex
 		: x{ x }, y{ y }, z{ z }, w{ w } {};
 		*/
 
-		Vertex(double x, double y, double z, double w)
-			: coords(x,y,z,w) {};
+		Vertex(double x, double y, double z)
+			: coords(x,y,z) {};
 		
 		~Vertex() {};
 

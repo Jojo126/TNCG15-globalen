@@ -3,7 +3,7 @@
 #include "Camera.h"
 #include "BmpSave.h"
 #include "Vertex.h"
-//#include <glm/glm.hpp>
+#include <glm/glm.hpp>
 
 /*double Direction::dotProduct(Direction inD) {
 	// x1*x2 + y1*y2 + z1*z2
@@ -21,8 +21,8 @@ int main()
 	// Specs for bitmap
 	//const int HEIGHT = 800;
 	//const int WIDTH = 800;
-	const int HEIGHT = 10;
-	const int WIDTH = 10;
+	const int HEIGHT = 5;
+	const int WIDTH = 5;
 	static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
 	char* imageFileName = (char*) "bitmapImage.bmp";
 
@@ -65,10 +65,13 @@ int main()
 					
 					// Undersök ifall triangel bakom kameran
 					if (t > 0) {
-						Direction P_hit = rayStart + (rayDir*t); // punkten där ray skär traingeln
+						//Direction P_hit = rayStart + (rayDir*t); // punkten där ray skär traingeln
 						Direction v0 = Direction(current.v1.x, current.v1.y, current.v1.z);
 						Direction v1 = Direction(current.v2.x, current.v2.y, current.v2.z);
 						Direction v2 = Direction(current.v3.x, current.v3.y, current.v3.z);
+						std::cout << "v0: (" << v0.x << "," << v0.y << "," << v0.z << ")" << std::endl;
+						std::cout << "v1: (" << v1.x << "," << v1.y << "," << v1.z << ")" << std::endl;
+						std::cout << "v2: (" << v2.x << "," << v2.y << "," << v2.z << ")" << std::endl;
 						/*Vertex edge0 = current.v2 - current.v1;
 						Vertex edge1 = current.v3 - current.v2;
 						Vertex edge2 = current.v1 - current.v3;
@@ -79,16 +82,29 @@ int main()
 						Direction C1 = P - Direction(current.v2.x, current.v2.y, current.v2.z);
 						Direction C2 = P - Direction(current.v3.x, current.v3.y, current.v3.z);*/
 
-						Direction T = rayStart - v0; // T = P_s - v_0
+						Direction P_hit = rayStart + (rayDir * t);
+
+						Direction T = Direction(camera.eye1.x, camera.eye1.y, camera.eye1.z) - v0; // T = P_s - v_0
 						Direction E1 = v1 - v0;
 						Direction E2 = v2 - v0;
-						Direction D = rayDir;
+						Direction D = P_hit - Direction(camera.eye1.x, camera.eye1.y, camera.eye1.z);
 						Direction P = D.crossProduct(E2);
 						Direction Q = T.crossProduct(E1);
+
+						double mark_t = Q.dotProduct(E2) / P.dotProduct(E1);
+						std::cout << "mark_t: " << mark_t << std::endl;
+						std::cout << "our t: " << t << std::endl;
+
 						
+						
+
 						if (P.dotProduct(E1) != 0) {
-							float u = P.dotProduct(T) / P.dotProduct(E1);
-							float v = Q.dotProduct(D) / P.dotProduct(E1);
+							double u = P.dotProduct(T) / P.dotProduct(E1);
+							double v = Q.dotProduct(D) / P.dotProduct(E1);
+
+							std::cout << "P.dotProduct(T): " << P.dotProduct(T) << ", Q.dotProduct(D): " << Q.dotProduct(D) << std::endl;
+							std::cout << "denominator = " << P.dotProduct(E1) << std::endl;
+							std::cout << "(" << u << "," << v << "," << u + v << ")" << std::endl;
 
 							if (u >= 0 && v >= 0 && u + v <= 1) {
 

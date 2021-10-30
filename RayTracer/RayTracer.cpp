@@ -30,8 +30,8 @@ int main()
 
 	// Draw/store image
 	int i, j;
-	for (i = 0; i < HEIGHT; i++) {
-		for (j = 0; j < WIDTH; j++) {
+	for (i = 0; i < WIDTH; i++) {
+		for (j = 0; j < HEIGHT; j++) {
 
 			// Get pixelcoords from pixel index in image
 			glm::vec3 pixelCoord = glm::vec3(0.0, (i - 401.0 + ((double)rand() / (RAND_MAX)))*0.0025, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
@@ -68,15 +68,17 @@ int main()
 					double u = glm::dot(P, T) / denom;
 					double v = glm::dot(Q, D) / denom;
 
+					// Check if point inside triangle
+					// t > 0: triangle in front of camera 
 					if (t > 0 && u >= 0 && v >= 0 && u + v <= 1) {
 
 						// Get calculated color for pixel from traced ray
 						ColorDbl color = currentTriangle.rgb;
 
 						// Store found color in rendered image
-						image[i][j][2] = color.R;
-						image[i][j][1] = color.G;
-						image[i][j][0] = color.B;
+						image[j][i][2] = color.R;
+						image[j][i][1] = color.G;
+						image[j][i][0] = color.B;
 					}
 				}
 			}

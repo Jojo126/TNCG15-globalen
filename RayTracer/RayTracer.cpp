@@ -1,26 +1,31 @@
 #include <iostream>
+#include <cstdlib>
+#include <time.h>
+#include <glm/glm.hpp>
+#include "BmpSave.h"
 #include "Scene.h"
 #include "Camera.h"
-#include "BmpSave.h"
-#include <math.h>
-#include <glm/glm.hpp>
 
 int main()
 {
 	// Creates an empty room
 	Scene scene;
 
-	// TODO: Create a camera
+	// Create the camera
 	Camera camera;
 	const glm::vec3 cameraPos = camera.eye2;
 
 	// Specs for bitmap
 	const int HEIGHT = 800;
 	const int WIDTH = 800;
+
+	// Init image file
 	static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
 	char* imageFileName = (char*) "bitmapImage.bmp";
 
-	// TODO: Render the scene
+	srand(static_cast <unsigned> (time(0))); // Init rand
+
+	// TODO: Render the scene from camera
 	//camera.render(scene);
 
 	// Draw/store image
@@ -28,13 +33,8 @@ int main()
 	for (i = 0; i < HEIGHT; i++) {
 		for (j = 0; j < WIDTH; j++) {
 
-			// Placeholder colors for rendered image
-			//image[i][j][2] = (unsigned char)(i * 255 / HEIGHT);					///red
-			//image[i][j][1] = (unsigned char)(j * 255 / WIDTH);				    ///green
-			//image[i][j][0] = (unsigned char)((i + j) * 255 / (HEIGHT + WIDTH)); ///blue
-
 			// Get pixelcoords from pixel index in image
-			glm::vec3 pixelCoord = glm::vec3(0.0, (i - 401.0)*0.0025, (j - 401.0) * 0.0025);
+			glm::vec3 pixelCoord = glm::vec3(0.0, (i - 401.0 + ((double)rand() / (RAND_MAX)))*0.0025, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
 
 			// Get rays direction from camera and pixel coordinates
 			glm::vec3 rayStart = cameraPos;
@@ -54,8 +54,7 @@ int main()
 				glm::vec3 v1 = currentTriangle.v2.coords;
 				glm::vec3 v2 = currentTriangle.v3.coords;
 
-				glm::vec3 T = p_s - v0; // T = P_s - v_0, 
-				// Edges along the triangle
+				glm::vec3 T = p_s - v0; // T = P_s - v_0
 				glm::vec3 E1 = v1 - v0;
 				glm::vec3 E2 = v2 - v0;
 				glm::vec3 D = p_e - p_s; // D = P_e - P_s
@@ -69,23 +68,15 @@ int main()
 					double u = glm::dot(P, T) / denom;
 					double v = glm::dot(Q, D) / denom;
 
-					/*
-					std::cout << "P.dotProduct(T): " << P.dotProduct(T) << ", Q.dotProduct(D): " << Q.dotProduct(D) << std::endl;
-					std::cout << "denominator = " << P.dotProduct(E1) << std::endl;
-					std::cout << "(" << u << "," << v << "," << u + v << ")" << std::endl;
-					*/
-
 					if (t > 0 && u >= 0 && v >= 0 && u + v <= 1) {
 
-						//std::cout << "t: " << t << std::endl;
-						//std::cout << "(" << u << "," << v << "," << u + v << ")" << std::endl;
 						// Get calculated color for pixel from traced ray
 						ColorDbl color = currentTriangle.rgb;
 
 						// Store found color in rendered image
-						image[i][j][2] = color.R; //(unsigned char)(i * 255 / HEIGHT);					///red
-						image[i][j][1] = color.G; //(unsigned char)(j * 255 / WIDTH);				    ///green
-						image[i][j][0] = color.B; //(unsigned char)((i + j) * 255 / (HEIGHT + WIDTH)); ///blue
+						image[i][j][2] = color.R;
+						image[i][j][1] = color.G;
+						image[i][j][0] = color.B;
 					}
 				}
 			}

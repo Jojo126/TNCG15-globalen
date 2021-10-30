@@ -4,27 +4,31 @@ It has the three components of a direction vector x, y, z.
 
 #pragma once
 #include "Vertex.h"
+#include "glm/glm.hpp"
 
 class Direction
 {		
 	public:
-		double x, y, z;
+		glm::vec3 direction;
 		
 		Direction() = default;
 		
 		Direction(double x, double y, double z) 
-		: x{ x }, y{ y }, z{ z } {};
+		: direction( x ,  y ,  z ) {};
+
+		Direction(glm::vec3 dir)
+			: direction{ dir } {};
 		
 		Direction(Vertex v1, Vertex v2, Vertex v3) {
-			x = (v2.y - v1.y) * (v3.z - v1.z) - (v2.z - v1.z) * (v3.y - v1.y);
-			y = (v2.z - v1.z) * (v3.x - v1.x) - (v2.x - v1.x) * (v3.z - v1.z);
-			z = (v2.x - v1.x) * (v3.y - v1.y) - (v2.y - v1.y) * (v3.x - v1.x);
+			direction.x = (v2.coords.y - v1.coords.y) * (v3.coords.z - v1.coords.z) - (v2.coords.z - v1.coords.z) * (v3.coords.y - v1.coords.y);
+			direction.y = (v2.coords.z - v1.coords.z) * (v3.coords.x - v1.coords.x) - (v2.coords.x - v1.coords.x) * (v3.coords.z - v1.coords.z);
+			direction.z = (v2.coords.x - v1.coords.x) * (v3.coords.y - v1.coords.y) - (v2.coords.y - v1.coords.y) * (v3.coords.x - v1.coords.x);
 		}
 
 		~Direction() {};
 
 		// Kryssprodukt
-		Direction crossProduct(Direction inV);
+		/*Direction crossProduct(Direction inV);
 
 		/// Skalärprodukt
 		double dotProduct(Direction inV);
@@ -34,7 +38,7 @@ class Direction
 
 		Direction operator+(Direction inD);
 
-		Direction operator-(Direction inD);
+		Direction operator-(Direction inD);*/
 
 };
 

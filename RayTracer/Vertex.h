@@ -4,11 +4,12 @@ coordinates).
 */
 
 #pragma once
+#include "glm/glm.hpp"
 
 class Vertex
 {
 	public:
-		double x, y, z, w;
+		glm::vec4 coords;
 
 		Vertex() = default;
 		
@@ -18,13 +19,13 @@ class Vertex
 		*/
 
 		Vertex(double x, double y, double z, double w)
-			: x{ x }, y{ y }, z{ z }, w{ w } {};
+			: coords(x,y,z,w) {};
 		
 		~Vertex() {};
 
 		// Overload '-' operator
-		Vertex operator-(Vertex inV);
-		Vertex operator+(Vertex inV);
-		Vertex operator*(double db);
+		//Vertex operator-(Vertex inV);
+		//Vertex operator+(Vertex inV);
+		//Vertex operator*(double db);
 };
 

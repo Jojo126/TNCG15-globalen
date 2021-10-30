@@ -1,6 +1,6 @@
 #include "Vertex.h"
 
-Vertex Vertex::operator+(Vertex inV) {
+/*Vertex Vertex::operator+(Vertex inV) {
 	this->x += inV.x;
 	this->y += inV.y;
 	this->z += inV.z;
@@ -22,4 +22,4 @@ Vertex Vertex::operator*(double inD) {
 	this->z *= inD;
 
 	return *this;
-}
+}*/

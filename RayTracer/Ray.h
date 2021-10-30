@@ -12,23 +12,17 @@ the end point is located. The ray color is a ColorDbl.
 #include "Triangle.h"
 #include "ColorDbl.h"
 #include "Vertex.h"
-#include "Direction.h"
-#include <cmath>
-
-class Scene;
-class Triangle;
-
 class Ray
 {
 	public:
 		//std::list<Vertex>& vertList; //ska innehålla start- & endpoints
-		Vertex startPoint, endPoint;
-		//Triangle& triangle;
+		glm::vec3 startPoint, endPoint;
 		ColorDbl rgb;
 		Direction dir;
 
-		Ray(Vertex startP, int i, int j);
+		//Ray(Vertex startP, int i, int j);
 		Ray() = default;
+
 		
 		//triangle = Scene::intersectedTriangle(this);
 		

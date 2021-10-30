@@ -1,6 +1,6 @@
 #include "Triangle.h"
 
-bool Triangle::rayIntersection(Ray myRay) { //pass by refernce?
+/*bool Triangle::rayIntersection(Ray myRay) { //pass by refernce?
     // Får in en ray med triangeln
     // Hitta skärningspunkten mellan triangeln & rayen
     // för att se om dom skär or nah
@@ -60,7 +60,7 @@ bool Triangle::rayIntersection(Ray myRay) { //pass by refernce?
         return false;
             
     return false;
-}
+}*/
 
 
 /*

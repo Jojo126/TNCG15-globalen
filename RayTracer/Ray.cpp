@@ -1,9 +1,9 @@
 #include "Ray.h"
 
 
-Ray::Ray(Vertex startP, int i, int j) {
+/*Ray::Ray(Vertex startP, int i, int j) {
 
-	startPoint = startP;
+	startPoint = glm::vec3(startP.coords);
 	//triangle = ;
 
 	double deltaY = rand() / RAND_MAX, deltaZ = rand() / RAND_MAX;
@@ -18,4 +18,4 @@ Ray::Ray(Vertex startP, int i, int j) {
 	dir.x /= sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
 	dir.y /= sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
 	dir.z /= sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-}
+}*/

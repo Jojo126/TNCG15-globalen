@@ -20,8 +20,8 @@ class Camera
 {
 	public:
 
-		Vertex eye1 = Vertex(-2.0, 0.0, 0.0, 1.0);
-		Vertex eye2 = Vertex(-1.0, 0.0, 0.0, 1.0);
+		glm::vec3 eye1 = glm::vec3(-2.0, 0.0, 0.0);
+		glm::vec3 eye2 = glm::vec3(-1.0, 0.0, 0.0);
 		bool useFirstEye;
 		//Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
 
@@ -29,7 +29,7 @@ class Camera
 		Camera() = default;
 		~Camera() {};
 
-		void render(Scene scene);
+		//void render(Scene scene);
 
 		//void createImage();
 		// i createimage: loopa igenom alla pixlar, i,j, och de tre kanalerna R,G,B, för att hitta i_max (högsta intensitetsvärdet i antingen R,G, eller B) 

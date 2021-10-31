@@ -29,6 +29,8 @@ int main()
 	//camera.render(scene);
 
 	// Draw/store image
+	std::cout << "Rendering image..." << std::endl;
+
 	int i, j;
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
@@ -40,14 +42,12 @@ int main()
 			glm::vec3 rayStart = cameraPos;
 			glm::vec3 rayDirection = pixelCoord - rayStart;
 			
+			ColorDbl color; 
+			double t_nearest = INFINITY;
 			
-			ColorDbl color;
 			// Loopa through all triangles in scene
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
-				double t_nearest = 10000.00;
 				Triangle currentTriangle = *it;
-
-				// Marks method:
 
 				// Rename traingles vertices
 				glm::vec3 p_s = cameraPos;
@@ -73,11 +73,11 @@ int main()
 					// Check if point inside triangle
 					// t > 0: triangle in front of camera 
 					if (t > 0 && u >= 0 && v >= 0 && u + v <= 1) {
-						// Kolla vilken triangel som är närmast
+
+						// Need only color from triangle with nearest intersection point to p_s
 						if (t_nearest > t) {
-							//std::cout << "t: " << t << std::endl;
+
 							t_nearest = t;
-							//std::cout << "t_nearest: " << t_nearest << std::endl;
 							// Get calculated color for pixel from traced ray
 							color = currentTriangle.rgb;
 						}
@@ -90,6 +90,8 @@ int main()
 			image[i][j][0] = color.B;
 		}
 	}
+
+	std::cout << "Image rendered." << std::endl;
 
 	// Save image into bitmap
 	generateBitmapImage((unsigned char*)image, WIDTH, HEIGHT, imageFileName);

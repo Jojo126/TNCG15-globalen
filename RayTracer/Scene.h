@@ -40,6 +40,12 @@ class Scene
 			mVertices.push_back(Vertex(-3.0, 0.0, -5.0));
 			mVertices.push_back(Vertex(5.0, 0.0, 5.0));
 			mVertices.push_back(Vertex(5.0, 0.0, -5.0));
+			// Tetrahedron
+			mVertices.push_back(Vertex(6.0, -1.0, 2.0 )); // 14
+			mVertices.push_back(Vertex(5.0, -1.0, 0.0));  // 15
+			mVertices.push_back(Vertex(7.0, -2.0, 0.0)); // 16
+			mVertices.push_back(Vertex(6.0, 1.0, 0.0));// 17
+			
 
 			// Ceiling
 			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(10), mVertices.at(0), ColorDbl(255.0, 255.0, 255.0), Direction(mVertices.at(12), mVertices.at(10), mVertices.at(0))));
@@ -71,6 +77,12 @@ class Scene
 			mTriangles.push_back(Triangle(mVertices.at(8), mVertices.at(9), mVertices.at(11), ColorDbl(0.0, 255.0, 255.0), Direction(mVertices.at(8), mVertices.at(9), mVertices.at(11))));
 			mTriangles.push_back(Triangle(mVertices.at(8), mVertices.at(11), mVertices.at(10), ColorDbl(0.0, 255.0, 255.0), Direction(mVertices.at(8), mVertices.at(11), mVertices.at(10))));
 
+			// Tetrahedron
+			
+			mTriangles.push_back(Triangle(mVertices.at(14), mVertices.at(17), mVertices.at(15), ColorDbl(0.0, 255.0, 0.0), Direction(mVertices.at(14), mVertices.at(17), mVertices.at(15))));
+			mTriangles.push_back(Triangle(mVertices.at(14), mVertices.at(16), mVertices.at(17), ColorDbl(0.0, 255.0, 255.0), Direction(mVertices.at(14), mVertices.at(16), mVertices.at(17))));
+			mTriangles.push_back(Triangle(mVertices.at(15), mVertices.at(17), mVertices.at(16), ColorDbl(0.0, 0.0, 0.0), Direction(mVertices.at(15), mVertices.at(17), mVertices.at(16))));
+			mTriangles.push_back(Triangle(mVertices.at(14), mVertices.at(15), mVertices.at(16), ColorDbl(255.0, 0.0, 0.0), Direction(mVertices.at(14), mVertices.at(15), mVertices.at(16))));
 			std::cout << "created room" << std::endl;
 		}
 			

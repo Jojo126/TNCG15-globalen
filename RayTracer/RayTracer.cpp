@@ -40,9 +40,11 @@ int main()
 			glm::vec3 rayStart = cameraPos;
 			glm::vec3 rayDirection = pixelCoord - rayStart;
 			
+			
+			ColorDbl color;
 			// Loopa through all triangles in scene
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
-
+				double t_nearest = 10000.00;
 				Triangle currentTriangle = *it;
 
 				// Marks method:
@@ -71,17 +73,21 @@ int main()
 					// Check if point inside triangle
 					// t > 0: triangle in front of camera 
 					if (t > 0 && u >= 0 && v >= 0 && u + v <= 1) {
-
-						// Get calculated color for pixel from traced ray
-						ColorDbl color = currentTriangle.rgb;
-
-						// Store found color in rendered image
-						image[i][j][2] = color.R;
-						image[i][j][1] = color.G;
-						image[i][j][0] = color.B;
+						// Kolla vilken triangel som är närmast
+						if (t_nearest > t) {
+							//std::cout << "t: " << t << std::endl;
+							t_nearest = t;
+							//std::cout << "t_nearest: " << t_nearest << std::endl;
+							// Get calculated color for pixel from traced ray
+							color = currentTriangle.rgb;
+						}
 					}
 				}
 			}
+			// Store found color in rendered image
+			image[i][j][2] = color.R;
+			image[i][j][1] = color.G;
+			image[i][j][0] = color.B;
 		}
 	}
 

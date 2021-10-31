@@ -34,7 +34,7 @@ int main()
 		for (j = 0; j < HEIGHT; j++) {
 
 			// Get pixelcoords from pixel index in image
-			glm::vec3 pixelCoord = glm::vec3(0.0, (i - 401.0 + ((double)rand() / (RAND_MAX)))*0.0025, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
+			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX)))*0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
 
 			// Get rays direction from camera and pixel coordinates
 			glm::vec3 rayStart = cameraPos;
@@ -76,9 +76,9 @@ int main()
 						ColorDbl color = currentTriangle.rgb;
 
 						// Store found color in rendered image
-						image[j][i][2] = color.R;
-						image[j][i][1] = color.G;
-						image[j][i][0] = color.B;
+						image[i][j][2] = color.R;
+						image[i][j][1] = color.G;
+						image[i][j][0] = color.B;
 					}
 				}
 			}
@@ -86,6 +86,6 @@ int main()
 	}
 
 	// Save image into bitmap
-	generateBitmapImage((unsigned char*)image, HEIGHT, WIDTH, imageFileName);
+	generateBitmapImage((unsigned char*)image, WIDTH, HEIGHT, imageFileName);
 	printf("Image generated!!");
 }

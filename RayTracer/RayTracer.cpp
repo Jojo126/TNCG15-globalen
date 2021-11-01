@@ -43,8 +43,35 @@ int main()
 			glm::vec3 rayDirection = pixelCoord - rayStart;
 			
 			ColorDbl color; 
+			double t;
 			double t_nearest = INFINITY;
+	
+			// Find intersection point between ray and implicit sphere
+			glm::vec3 sphereC = glm::vec3(10.0, 2.0, 1.0);
+			double sphereR = 1.5;
+			double b = glm::dot(2.0f*glm::normalize(rayDirection), (rayStart - sphereC));
+			double c = glm::dot((rayStart - sphereC), (rayStart - sphereC)) - sphereR * sphereR;
+			double delta = (b * b/4) - c;
 			
+			// Ray intersects with sphere
+			if (delta > 0) {
+				t = -b/2 - sqrt(delta);
+
+				if (t_nearest > t) {
+					t_nearest = t;
+					color = ColorDbl(255.0, 0.0, 0.0);
+				}
+			}
+			// Ray touches sphere
+			else if (delta == 0) {
+				t = -b/2;
+
+				if (t_nearest > t) {
+					t_nearest = t;
+					color = ColorDbl(255.0, 0.0, 0.0);
+				}
+			}
+
 			// Loopa through all triangles in scene
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
@@ -66,7 +93,7 @@ int main()
 				double denom = glm::dot(P, E1);
 
 				if (denom != 0) {
-					double t = glm::dot(Q, E2) / denom;
+					t = glm::dot(Q, E2) / denom;
 					double u = glm::dot(P, T) / denom;
 					double v = glm::dot(Q, D) / denom;
 

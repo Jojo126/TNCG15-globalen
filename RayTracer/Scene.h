@@ -12,10 +12,8 @@ intersection point to the Ray arg
 #pragma once
 #include <iostream>
 #include "Triangle.h"
-//#include "Ray.h"
 #include <vector>
 
-// TODO: replace vertex with glm vectors?
 class Scene
 {
 	public:
@@ -42,13 +40,6 @@ class Scene
 			mVertices.push_back(Vertex(5.0, 0.0, -5.0));
 
 			// Tetrahedron
-			/*
-			* Old coordinates
-			mVertices.push_back(Vertex(6.0, -1.0, 2.0 )); // 14
-			mVertices.push_back(Vertex(5.0, 2.0, 0.0));  // 15
-			mVertices.push_back(Vertex(7.0, -2.0, 0.0)); // 16
-			mVertices.push_back(Vertex(6.0, 1.0, 0.0)); // 17
-			*/
 			mVertices.push_back(Vertex(7.0, -1.0, -1.0));
 			mVertices.push_back(Vertex(6.5, -1.0, -3.0));
 			mVertices.push_back(Vertex(9.0, -2.0, -3.0));

@@ -32,6 +32,7 @@ int main()
 	std::cout << "Rendering image..." << std::endl;
 
 	int i, j;
+	double i_max = 0;
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 
@@ -59,7 +60,7 @@ int main()
 
 				if (t_nearest > t) {
 					t_nearest = t;
-					color = ColorDbl(255.0, 0.0, 0.0);
+					color = ColorDbl(1.0, 0.0, 0.0);
 				}
 			}
 			// Ray touches sphere
@@ -68,7 +69,7 @@ int main()
 
 				if (t_nearest > t) {
 					t_nearest = t;
-					color = ColorDbl(255.0, 0.0, 0.0);
+					color = ColorDbl(1.0, 0.0, 0.0);
 				}
 			}
 
@@ -115,6 +116,26 @@ int main()
 			image[i][j][2] = color.R;
 			image[i][j][1] = color.G;
 			image[i][j][0] = color.B;
+
+			if (image[i][j][2] > i_max) {
+				i_max = image[i][j][2];
+			}
+			if (image[i][j][1] > i_max) {
+				i_max = image[i][j][1];
+			}
+			if (image[i][j][0] > i_max) {
+				i_max = image[i][j][0];
+			}
+		}
+	}
+
+
+	// Loopa igenom pixlarna igen för att hitta de starkaste intensiteterna oså
+	for (i = 0; i < WIDTH; i++) {
+		for (j = 0; j < HEIGHT; j++) {
+			for (int index = 0; index < 3; index++) {
+				image[i][j][index] *= 255.99/i_max;
+			}
 		}
 	}
 

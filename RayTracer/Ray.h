@@ -9,16 +9,17 @@ the end point is located. The ray color is a ColorDbl.
 
 
 #pragma once
-#include "Triangle.h"
+//#include "Triangle.h"
 #include "ColorDbl.h"
-#include "Vertex.h"
+#include "Direction.h"
+#include <glm/glm.hpp>
+
 class Ray
 {
 	public:
-		//std::list<Vertex>& vertList; //ska innehålla start- & endpoints
 		glm::vec3 startPoint, endPoint;
 		ColorDbl rgb;
-		Direction dir;
+		Direction direction;
 
 		//Ray(Vertex startP, int i, int j);
 		Ray() = default;

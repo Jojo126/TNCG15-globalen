@@ -5,6 +5,7 @@
 #include "BmpSave.h"
 #include "Scene.h"
 #include "Camera.h"
+#include "Ray.h"
 
 int main()
 {
@@ -40,18 +41,21 @@ int main()
 			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX)))*0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
 
 			// Get rays direction from camera and pixel coordinates
+			Ray firstRay;
 			glm::vec3 rayStart = cameraPos;
 			glm::vec3 rayDirection = pixelCoord - rayStart;
+
+			firstRay.startPoint = cameraPos;
+			firstRay.direction = pixelCoord - firstRay.startPoint;
 			
-			ColorDbl color; 
 			double t;
 			double t_nearest = INFINITY;
 	
 			// Find intersection point between ray and implicit sphere
 			glm::vec3 sphereC = glm::vec3(10.0, 2.0, 1.0);
 			double sphereR = 1.5;
-			double b = glm::dot(2.0f*glm::normalize(rayDirection), (rayStart - sphereC));
-			double c = glm::dot((rayStart - sphereC), (rayStart - sphereC)) - sphereR * sphereR;
+			double b = glm::dot(2.0f*glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
+			double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
 			double delta = (b * b/4) - c;
 			
 			// Ray intersects with sphere
@@ -60,7 +64,7 @@ int main()
 
 				if (t_nearest > t) {
 					t_nearest = t;
-					color = ColorDbl(1.0, 0.0, 0.0);
+					firstRay.rgb = ColorDbl(1.0, 0.0, 0.0);
 				}
 			}
 			// Ray touches sphere
@@ -69,7 +73,7 @@ int main()
 
 				if (t_nearest > t) {
 					t_nearest = t;
-					color = ColorDbl(1.0, 0.0, 0.0);
+					firstRay.rgb = ColorDbl(1.0, 0.0, 0.0);
 				}
 			}
 
@@ -78,7 +82,7 @@ int main()
 				Triangle currentTriangle = *it;
 
 				// Rename traingles vertices
-				glm::vec3 p_s = cameraPos;
+				glm::vec3 p_s = firstRay.startPoint;
 				glm::vec3 p_e = pixelCoord;
 				glm::vec3 v0 = currentTriangle.v1.coords;
 				glm::vec3 v1 = currentTriangle.v2.coords;
@@ -107,15 +111,15 @@ int main()
 
 							t_nearest = t;
 							// Get calculated color for pixel from traced ray
-							color = currentTriangle.rgb;
+							firstRay.rgb = currentTriangle.rgb;
 						}
 					}
 				}
 			}
 			// Store found color in rendered image
-			image[i][j][2] = color.R;
-			image[i][j][1] = color.G;
-			image[i][j][0] = color.B;
+			image[i][j][2] = firstRay.rgb.R;
+			image[i][j][1] = firstRay.rgb.G;
+			image[i][j][0] = firstRay.rgb.B;
 
 			if (image[i][j][2] > i_max) {
 				i_max = image[i][j][2];

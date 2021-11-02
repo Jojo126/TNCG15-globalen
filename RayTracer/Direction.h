@@ -29,14 +29,14 @@ class Direction
 
 		~Direction() {};
 
+		// Multiplikation mellan vector + skalär
+		Direction operator*(float inD);
+
 		// Kryssprodukt
 		/*Direction crossProduct(Direction inV);
 
 		/// Skalärprodukt
 		double dotProduct(Direction inV);
-
-		// Multiplikation mellan vector + skalär
-		Direction operator*(float inD);
 
 		Direction operator+(Direction inD);
 

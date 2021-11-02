@@ -1,5 +1,13 @@
 #include "Direction.h"
 
+Direction Direction::operator*(float inD) {
+	this->direction.x *= inD;
+	this->direction.y *= inD;
+	this->direction.z *= inD;
+
+	return *this;
+}
+
 /*Direction Direction::crossProduct(Direction inD) {
 	
 	Direction crossP;
@@ -13,14 +21,6 @@
 double Direction::dotProduct(Direction inD) {
 	// x1*x2 + y1*y2 + z1*z2
 	return this->direction.x * inD.x + this->y * inD.y + this->z * inD.z;
-}
-
-Direction Direction::operator*(float inD) {
-	this->x *= inD;
-	this->y *= inD;
-	this->z *= inD;
-
-	return *this;
 }
 
 Direction Direction::operator+(Direction inD) {

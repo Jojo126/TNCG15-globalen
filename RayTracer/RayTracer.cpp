@@ -116,20 +116,24 @@ int main()
 				}
 			}
 
+
+			/******************* Shadow Rays *********************/
 			// Save sphere or triangle index when intersection done on them?
 			// Then check if shadow ray intersects with itself?
 
 			// Shoot shadow ray
+			/*
 			Ray shadowRay;
 			shadowRay.startPoint = firstRay.endPoint;
 			shadowRay.endPoint = scene.lightSource;
 			shadowRay.direction = Direction(glm::normalize(scene.lightSource - firstRay.endPoint));
+			*/
 
 			//glm::vec3 sphereC = glm::vec3(10.0, 2.0, 1.0);
 			//double sphereR = 1.5;
 			//double b = glm::dot(2.0f * glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
 			//double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
-
+			/*
 			 b = glm::dot(2.0f * glm::normalize(shadowRay.direction.direction), (shadowRay.startPoint - sphereC));
 			 c = glm::dot((shadowRay.startPoint - sphereC), (shadowRay.startPoint - sphereC)) - sphereR * sphereR;
 			 delta = (b * b / 4) - c;
@@ -151,7 +155,7 @@ int main()
 					firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
 				}
 			}
-			
+			*/
 			// Check if shadow ray intersects with scene objects between intersection point and light source
 			/*
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
@@ -199,6 +203,8 @@ int main()
 
 			// Summerar färg från flera rays (BRDF?)
 			//firstRay.rgb = shadowRay.rgb;
+
+			/******************************************************/
 
 			// Store found color in rendered image
 			image[i][j][2] = firstRay.rgb.R;

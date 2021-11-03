@@ -50,7 +50,7 @@ int main()
 			double t_nearest = INFINITY;
 	
 			// Find intersection point between ray and implicit sphere
-			glm::vec3 sphereC = glm::vec3(10.0, 0.0, 1.0);
+			glm::vec3 sphereC = glm::vec3(10.0, -3.0, -1.0);
 			double sphereR = 1.5;
 			double b = glm::dot(2.0f*glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
 			double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
@@ -116,6 +116,9 @@ int main()
 				}
 			}
 
+			// Save sphere or triangle index when intersection done on them?
+			// Then check if shadow ray intersects with itself?
+
 			// Shoot shadow ray
 			Ray shadowRay;
 			shadowRay.startPoint = firstRay.endPoint;
@@ -127,7 +130,6 @@ int main()
 			//double b = glm::dot(2.0f * glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
 			//double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
 
-			t_nearest = INFINITY;
 			 b = glm::dot(2.0f * glm::normalize(shadowRay.direction.direction), (shadowRay.startPoint - sphereC));
 			 c = glm::dot((shadowRay.startPoint - sphereC), (shadowRay.startPoint - sphereC)) - sphereR * sphereR;
 			 delta = (b * b / 4) - c;

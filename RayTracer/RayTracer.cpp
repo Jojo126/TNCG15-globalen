@@ -6,59 +6,52 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "Ray.h"
+#include <thread>
+#include <array>
 
-int main()
-{
-	// Creates an empty room
-	Scene scene;
+// Specs for bitmap
+const int HEIGHT = 800;
+const int WIDTH = 800;
 
-	// Create the camera
-	Camera camera;
-	const glm::vec3 cameraPos = camera.eye2;
+// Creates an empty room
+Scene scene;
 
-	// Specs for bitmap
-	const int HEIGHT = 800;
-	const int WIDTH = 800;
+// Create the camera
+Camera camera;
+const glm::vec3 cameraPos = camera.eye2;
 
-	// Init image file
-	static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
-	char* imageFileName = (char*) "bitmapImage.bmp";
+// Init image file
+static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
+char* imageFileName = (char*)"bitmapImage.bmp";
 
-	srand(static_cast <unsigned> (time(0))); // Init rand
-
-	// TODO: Render the scene from camera
-	//camera.render(scene);
-
-	// Draw/store image
-	std::cout << "Rendering image..." << std::endl;
-
+void rendersegment(int s, int e) {
 	int i, j;
 	double i_max = 0;
-	for (i = 0; i < WIDTH; i++) {
+	for (i = s; i < e; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			//std::cout << "new pixel" << std::endl;
 
 			// Get pixelcoords from pixel index in image
-			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX)))*0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
+			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
 
 			// Get rays direction from camera and pixel coordinates
 			Ray firstRay;
 			firstRay.startPoint = cameraPos;
 			firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
-			
+
 			double t;
 			double t_nearest = INFINITY;
-	
+
 			// Find intersection point between ray and implicit sphere
 			glm::vec3 sphereC = glm::vec3(10.0, -3.0, -1.0);
 			double sphereR = 1.5;
-			double b = glm::dot(2.0f*glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
+			double b = glm::dot(2.0f * glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
 			double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
-			double delta = (b * b/4) - c;
-			
+			double delta = (b * b / 4) - c;
+
 			// Ray intersects with sphere
 			if (delta > 0) {
-				t = -b/2 - sqrt(delta);
+				t = -b / 2 - sqrt(delta);
 
 				if (t_nearest > t) {
 					t_nearest = t;
@@ -67,7 +60,7 @@ int main()
 			}
 			// Ray touches sphere
 			else if (delta == 0) {
-				t = -b/2;
+				t = -b / 2;
 
 				if (t_nearest > t) {
 					t_nearest = t;
@@ -164,7 +157,7 @@ int main()
 				std::cout << "new triangle" << std::endl;
 
 				//if (currentTriangle == alreadyintercetedTriangle) skip
-				
+
 
 				// Rename traingles vertices
 				glm::vec3 p_s = shadowRay.startPoint;
@@ -178,7 +171,7 @@ int main()
 				glm::vec3 E2 = v2 - v0;
 				glm::vec3 D = p_e - p_s; // D = P_e - P_s
 				glm::vec3 P = glm::cross(D, E2); // P = D x E_2
-				glm::vec3 Q = glm::cross(T, E1); // Q = T x E_1 
+				glm::vec3 Q = glm::cross(T, E1); // Q = T x E_1
 
 				double denom = glm::dot(P, E1);
 
@@ -188,12 +181,12 @@ int main()
 					double v = glm::dot(Q, D) / denom;
 
 					// Check if point inside triangle
-					// t > 0: triangle in front of camera 
+					// t > 0: triangle in front of camera
 					if (t > 0.0001 && u >= 0 && v >= 0 && u + v <= 1) {
 						std::cout << "found intersection" << std::endl;
 						if (shadowRay.startPoint + (shadowRay.direction*t).direction == shadowRay.startPoint)
 							continue;
-						
+
 						// intersection happened
 						firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
 						//break;
@@ -210,7 +203,7 @@ int main()
 			image[i][j][2] = firstRay.rgb.R;
 			image[i][j][1] = firstRay.rgb.G;
 			image[i][j][0] = firstRay.rgb.B;
-
+			/*
 			if (image[i][j][2] > i_max) {
 				i_max = image[i][j][2];
 			}
@@ -219,12 +212,54 @@ int main()
 			}
 			if (image[i][j][0] > i_max) {
 				i_max = image[i][j][0];
-			}
+			}*/
 		}
 	}
+}
+
+int main()
+{
+
+	srand(static_cast <unsigned> (time(0))); // Init rand
+
+	// TODO: Render the scene from camera
+	//camera.render(scene);
+
+	// Draw/store image
+	std::cout << "Rendering image..." << std::endl;
+
+	const int n_threads = 8;
+	std::array<std::thread, n_threads> threads;
+	for (int i = 0; i < n_threads; i++) {
+		int start = i * HEIGHT / n_threads;
+		int end = (i + 1) * HEIGHT / n_threads;
+		std::cout << "thread " << i << " assigned to height " << start << "-" << end << "\n";
+
+		//threads[i] = std::thread(renderSegment, start, end);
+		threads[i] = std::thread(rendersegment, start, end);
+		//threads[i] = std::thread(renderPixelsInOrder);
+	}
+
+	std::cout << "Rendering started:\n";
+
+	for (int i = 0; i < n_threads; i++)
+		threads[i].join();
+
+	
 
 
 	// Loopa igenom pixlarna igen för att hitta de starkaste intensiteterna oså
+	int i, j;
+	double i_max = 0;
+	for (i = 0; i < WIDTH; i++) {
+		for (j = 0; j < HEIGHT; j++) {
+			for (int index = 0; index < 3; index++) {
+				if (image[i][j][index] > i_max)
+					i_max = image[i][j][index];
+			}	
+		}
+	}
+
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {

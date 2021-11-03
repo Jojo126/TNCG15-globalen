@@ -24,7 +24,7 @@ class Direction
 			direction.y = (v2.coords.z - v1.coords.z) * (v3.coords.x - v1.coords.x) - (v2.coords.x - v1.coords.x) * (v3.coords.z - v1.coords.z);
 			direction.z = (v2.coords.x - v1.coords.x) * (v3.coords.y - v1.coords.y) - (v2.coords.y - v1.coords.y) * (v3.coords.x - v1.coords.x);
 
-			glm::normalize(direction);
+			direction = glm::normalize(direction);
 		}
 
 		~Direction() {};

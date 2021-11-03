@@ -9,6 +9,18 @@
 #include <thread>
 #include <array>
 
+// !!!!!!!!!! Fixa datastruktur som store:ar bildvärden innan 
+// vi lägger in dom till bilden bc char kan inte innehålla floats -> gör om värden till 0 ish !!!!!!!!!!!!
+
+// 1. Fixa perfect reflector
+//		?. add material properties?? istället för att hårdkoda att sfären är en perfect reflector
+// 2. hålla på med avstånd till ljuset o grejs
+// 3. shadow rays
+// 4. lambertian
+// 5. monte carlo
+// 6. triangel-ljuskälla i taket
+// 7. KLARA - RAPPORT :DDDDDD
+
 // Specs for bitmap
 const int HEIGHT = 800;
 const int WIDTH = 800;
@@ -39,34 +51,8 @@ void rendersegment(int s, int e) {
 			firstRay.startPoint = cameraPos;
 			firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 
-			double t;
-			double t_nearest = INFINITY;
-
-			// Find intersection point between ray and implicit sphere
-			glm::vec3 sphereC = glm::vec3(10.0, -3.0, -1.0);
-			double sphereR = 1.5;
-			double b = glm::dot(2.0f * glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
-			double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
-			double delta = (b * b / 4) - c;
-
-			// Ray intersects with sphere
-			if (delta > 0) {
-				t = -b / 2 - sqrt(delta);
-
-				if (t_nearest > t) {
-					t_nearest = t;
-					firstRay.rgb = ColorDbl(1.0, 0.0, 0.0);
-				}
-			}
-			// Ray touches sphere
-			else if (delta == 0) {
-				t = -b / 2;
-
-				if (t_nearest > t) {
-					t_nearest = t;
-					firstRay.rgb = ColorDbl(1.0, 0.0, 0.0);
-				}
-			}
+			float t;
+			float t_nearest = INFINITY;
 
 			// Loopa through all triangles in scene
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
@@ -102,13 +88,75 @@ void rendersegment(int s, int e) {
 							t_nearest = t;
 
 							// Get calculated intersectionpoint and color for pixel from traced ray
-							firstRay.endPoint = firstRay.startPoint + (firstRay.direction * t).direction;
-							firstRay.rgb = currentTriangle.rgb;
+							firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction*t;
+
+							// TODO: get triangles normal and compare with light source normal to get local shadow
+							glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
+							double shadowFact = glm::dot(lightDirection, currentTriangle.normal.direction);
+
+							firstRay.rgb.R = currentTriangle.rgb.R*shadowFact;
+							firstRay.rgb.G = currentTriangle.rgb.G*shadowFact;
+							firstRay.rgb.B = currentTriangle.rgb.B*shadowFact;
+							
+							//firstRay.rgb = currentTriangle.rgb;
 						}
 					}
 				}
 			}
+			//std::cout << t_nearest << std::endl;
+			// Find intersection point between ray and implicit sphere
+			glm::vec3 sphereC = glm::vec3(8.0, -3.0, -1.0);
+			double sphereR = 1.5;
+			double b = glm::dot(2.0f * glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
+			double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
+			double delta = (b * b / 4) - c;
 
+
+			// Ray intersects with sphere
+			if (delta > 0) {
+				
+				t = -b / 2 - sqrt(delta);
+				//std::cout << t_nearest << ",    " << t << std::endl;
+				
+				if (t_nearest > t) {
+
+					t_nearest = t;
+					
+					firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction * t;
+					glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphereC);
+
+					//std::cout << "sphereNorm: (" << sphereNorm.x << "," << sphereNorm.y << "," << sphereNorm.z << ")" << std::endl;
+
+					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
+					double shadowFact = glm::dot(lightDirection, sphereNorm);
+
+					firstRay.rgb.R = 1.0*shadowFact;
+					firstRay.rgb.G = 0.0*shadowFact;
+					firstRay.rgb.B = 0.0*shadowFact;
+					
+					//firstRay.rgb = ColorDbl(1.0, 0.0, 0.0);
+				}
+			}
+			// Ray touches sphere
+			else if (delta == 0) {
+				//std::cout << t << std::endl;
+				t = -b / 2;
+
+				if (t_nearest > t) {
+					t_nearest = t;
+
+					firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction * t;
+
+					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
+					glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphereC);
+					double shadowFact = glm::dot(lightDirection, sphereNorm);
+
+					firstRay.rgb.R = 1.0 * shadowFact;
+					firstRay.rgb.G = 0.0 * shadowFact;
+					firstRay.rgb.B = 0.0 * shadowFact;
+					//firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
+				}
+			}
 
 			/******************* Shadow Rays *********************/
 			// Save sphere or triangle index when intersection done on them?
@@ -198,12 +246,13 @@ void rendersegment(int s, int e) {
 			//firstRay.rgb = shadowRay.rgb;
 
 			/******************************************************/
-
+			
 			// Store found color in rendered image
-			image[i][j][2] = firstRay.rgb.R;
-			image[i][j][1] = firstRay.rgb.G;
-			image[i][j][0] = firstRay.rgb.B;
-			/*
+			// TÄNK PÅ ATT TITTA EN EXTRA GÅNG HÄR, WHAI MAKE EXTRA STRONG? WHAT WRONG?
+			image[i][j][2] = firstRay.rgb.R*255;
+			image[i][j][1] = firstRay.rgb.G*255;
+			image[i][j][0] = firstRay.rgb.B*255;
+			
 			if (image[i][j][2] > i_max) {
 				i_max = image[i][j][2];
 			}
@@ -212,14 +261,13 @@ void rendersegment(int s, int e) {
 			}
 			if (image[i][j][0] > i_max) {
 				i_max = image[i][j][0];
-			}*/
+			}
 		}
 	}
 }
 
 int main()
 {
-
 	srand(static_cast <unsigned> (time(0))); // Init rand
 
 	// TODO: Render the scene from camera
@@ -228,7 +276,7 @@ int main()
 	// Draw/store image
 	std::cout << "Rendering image..." << std::endl;
 
-	const int n_threads = 8;
+	const int n_threads = 1;
 	std::array<std::thread, n_threads> threads;
 	for (int i = 0; i < n_threads; i++) {
 		int start = i * HEIGHT / n_threads;
@@ -245,8 +293,6 @@ int main()
 	for (int i = 0; i < n_threads; i++)
 		threads[i].join();
 
-	
-
 
 	// Loopa igenom pixlarna igen för att hitta de starkaste intensiteterna oså
 	int i, j;
@@ -259,7 +305,7 @@ int main()
 			}	
 		}
 	}
-
+	
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {

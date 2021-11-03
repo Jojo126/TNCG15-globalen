@@ -66,26 +66,26 @@ class Scene
 			mVertices.push_back(Vertex(10.0, 2.0, -5.0));
 			mVertices.push_back(Vertex(10.0, 2.0, -3.0));
 			// Square (debugging)
-			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(25), mVertices.at(23), green, Direction(mVertices.at(19), mVertices.at(25), mVertices.at(23))));
-			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(21), mVertices.at(25), cyan, Direction(mVertices.at(19), mVertices.at(21), mVertices.at(25))));
-			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(18), mVertices.at(21), black, Direction(mVertices.at(19), mVertices.at(18), mVertices.at(21))));
-			mTriangles.push_back(Triangle(mVertices.at(18), mVertices.at(20), mVertices.at(21), red, Direction(mVertices.at(18), mVertices.at(20), mVertices.at(21))));
-			mTriangles.push_back(Triangle(mVertices.at(21), mVertices.at(20), mVertices.at(25), red, Direction(mVertices.at(21), mVertices.at(20), mVertices.at(25))));
-			mTriangles.push_back(Triangle(mVertices.at(20), mVertices.at(24), mVertices.at(25), red, Direction(mVertices.at(20), mVertices.at(24), mVertices.at(25))));
-			mTriangles.push_back(Triangle(mVertices.at(25), mVertices.at(24), mVertices.at(23), green, Direction(mVertices.at(25), mVertices.at(24), mVertices.at(23))));
-			mTriangles.push_back(Triangle(mVertices.at(24), mVertices.at(22), mVertices.at(23), cyan, Direction(mVertices.at(24), mVertices.at(22), mVertices.at(23))));
-			mTriangles.push_back(Triangle(mVertices.at(22), mVertices.at(19), mVertices.at(23), black, Direction(mVertices.at(22), mVertices.at(19), mVertices.at(23))));
-			mTriangles.push_back(Triangle(mVertices.at(22), mVertices.at(18), mVertices.at(19), red, Direction(mVertices.at(22), mVertices.at(18), mVertices.at(19))));
-			mTriangles.push_back(Triangle(mVertices.at(22), mVertices.at(24), mVertices.at(18), red, Direction(mVertices.at(22), mVertices.at(24), mVertices.at(18))));
-			mTriangles.push_back(Triangle(mVertices.at(24), mVertices.at(20), mVertices.at(18), red, Direction(mVertices.at(24), mVertices.at(20), mVertices.at(18))));
+			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(25), mVertices.at(23), green, Direction(mVertices.at(19), mVertices.at(23), mVertices.at(25))));
+			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(21), mVertices.at(25), cyan, Direction(mVertices.at(19), mVertices.at(25), mVertices.at(21))));
+			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(18), mVertices.at(21), black, Direction(mVertices.at(19), mVertices.at(21), mVertices.at(18))));
+			mTriangles.push_back(Triangle(mVertices.at(18), mVertices.at(20), mVertices.at(21), red, Direction(mVertices.at(18), mVertices.at(21), mVertices.at(20))));
+			mTriangles.push_back(Triangle(mVertices.at(21), mVertices.at(20), mVertices.at(25), red, Direction(mVertices.at(21), mVertices.at(25), mVertices.at(20))));
+			mTriangles.push_back(Triangle(mVertices.at(20), mVertices.at(24), mVertices.at(25), red, Direction(mVertices.at(20), mVertices.at(25), mVertices.at(24))));
+			mTriangles.push_back(Triangle(mVertices.at(25), mVertices.at(24), mVertices.at(23), green, Direction(mVertices.at(25), mVertices.at(23), mVertices.at(24))));
+			mTriangles.push_back(Triangle(mVertices.at(24), mVertices.at(22), mVertices.at(23), cyan, Direction(mVertices.at(24), mVertices.at(23), mVertices.at(22))));
+			mTriangles.push_back(Triangle(mVertices.at(22), mVertices.at(19), mVertices.at(23), red, Direction(mVertices.at(22), mVertices.at(23), mVertices.at(19))));
+			mTriangles.push_back(Triangle(mVertices.at(22), mVertices.at(18), mVertices.at(19), red, Direction(mVertices.at(22), mVertices.at(19), mVertices.at(18))));
+			mTriangles.push_back(Triangle(mVertices.at(22), mVertices.at(24), mVertices.at(18), red, Direction(mVertices.at(22), mVertices.at(18), mVertices.at(24))));
+			mTriangles.push_back(Triangle(mVertices.at(24), mVertices.at(20), mVertices.at(18), red, Direction(mVertices.at(24), mVertices.at(18), mVertices.at(20))));
 			
 			// Ceiling
-			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(10), mVertices.at(0), white, Direction(mVertices.at(12), mVertices.at(10), mVertices.at(0))));
-			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(0), mVertices.at(2), white, Direction(mVertices.at(12), mVertices.at(0), mVertices.at(2))));
-			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(2), mVertices.at(4), white, Direction(mVertices.at(12), mVertices.at(2), mVertices.at(4))));
-			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(4), mVertices.at(6), white, Direction(mVertices.at(12), mVertices.at(4), mVertices.at(6))));
-			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(6), mVertices.at(8), white, Direction(mVertices.at(12), mVertices.at(6), mVertices.at(8))));
-			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(8), mVertices.at(10), white, Direction(mVertices.at(12), mVertices.at(8), mVertices.at(10))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(10), mVertices.at(0), white, Direction(mVertices.at(12), mVertices.at(0), mVertices.at(10))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(0), mVertices.at(2), white, Direction(mVertices.at(12), mVertices.at(2), mVertices.at(0))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(2), mVertices.at(4), white, Direction(mVertices.at(12), mVertices.at(4), mVertices.at(2))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(4), mVertices.at(6), white, Direction(mVertices.at(12), mVertices.at(6), mVertices.at(4))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(6), mVertices.at(8), white, Direction(mVertices.at(12), mVertices.at(8), mVertices.at(6))));
+			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(8), mVertices.at(10), white, Direction(mVertices.at(12), mVertices.at(10), mVertices.at(8))));
 			
 			// Floor
 			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(1), mVertices.at(11), white, Direction(mVertices.at(13), mVertices.at(1), mVertices.at(11))));

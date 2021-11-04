@@ -24,6 +24,7 @@
 // Specs for bitmap
 const int HEIGHT = 800;
 const int WIDTH = 800;
+double intensityImage[800][800][3];
 
 // Creates an empty room
 Scene scene;
@@ -249,18 +250,18 @@ void rendersegment(int s, int e) {
 			
 			// Store found color in rendered image
 			// TÄNK PÅ ATT TITTA EN EXTRA GÅNG HÄR, WHAI MAKE EXTRA STRONG? WHAT WRONG?
-			image[i][j][2] = firstRay.rgb.R*255;
-			image[i][j][1] = firstRay.rgb.G*255;
-			image[i][j][0] = firstRay.rgb.B*255;
+			intensityImage[i][j][2] = firstRay.rgb.R*255;
+			intensityImage[i][j][1] = firstRay.rgb.G*255;
+			intensityImage[i][j][0] = firstRay.rgb.B*255;
 			
-			if (image[i][j][2] > i_max) {
-				i_max = image[i][j][2];
+			if (intensityImage[i][j][2] > i_max) {
+				i_max = intensityImage[i][j][2];
 			}
-			if (image[i][j][1] > i_max) {
-				i_max = image[i][j][1];
+			if (intensityImage[i][j][1] > i_max) {
+				i_max = intensityImage[i][j][1];
 			}
-			if (image[i][j][0] > i_max) {
-				i_max = image[i][j][0];
+			if (intensityImage[i][j][0] > i_max) {
+				i_max = intensityImage[i][j][0];
 			}
 		}
 	}
@@ -276,7 +277,7 @@ int main()
 	// Draw/store image
 	std::cout << "Rendering image..." << std::endl;
 
-	const int n_threads = 1;
+	const int n_threads = 8;
 	std::array<std::thread, n_threads> threads;
 	for (int i = 0; i < n_threads; i++) {
 		int start = i * HEIGHT / n_threads;
@@ -300,8 +301,8 @@ int main()
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
-				if (image[i][j][index] > i_max)
-					i_max = image[i][j][index];
+				if (intensityImage[i][j][index] > i_max)
+					i_max = intensityImage[i][j][index];
 			}	
 		}
 	}
@@ -309,7 +310,7 @@ int main()
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
-				image[i][j][index] *= 255.99/i_max;
+				image[i][j][index] = intensityImage[i][j][index] * 255.99/i_max;
 			}
 		}
 	}

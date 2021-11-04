@@ -10,9 +10,6 @@
 #include <array>
 #include <algorithm>
 
-// !!!!!!!!!! Fixa datastruktur som store:ar bildvärden innan 
-// vi lägger in dom till bilden bc char kan inte innehålla floats -> gör om värden till 0 ish !!!!!!!!!!!!
-
 // 1. Fixa perfect reflector
 //		?. add material properties?? istället för att hårdkoda att sfären är en perfect reflector
 // 2. hålla på med avstånd till ljuset o grejs
@@ -43,7 +40,6 @@ void rendersegment(int s, int e) {
 	double i_max = 0;
 	for (i = s; i < e; i++) {
 		for (j = 0; j < HEIGHT; j++) {
-			//std::cout << "new pixel" << std::endl;
 
 			// Get pixelcoords from pixel index in image
 			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
@@ -56,11 +52,11 @@ void rendersegment(int s, int e) {
 			float t;
 			float t_nearest = INFINITY;
 
-			// Loopa through all triangles in scene
+			// Loop through all triangles in scene
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
 
-				// Rename traingles vertices
+				// Rename triangle vertices
 				glm::vec3 p_s = firstRay.startPoint;
 				glm::vec3 p_e = pixelCoord;
 				glm::vec3 v0 = currentTriangle.v1.coords;
@@ -92,20 +88,17 @@ void rendersegment(int s, int e) {
 							// Get calculated intersectionpoint and color for pixel from traced ray
 							firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction*t;
 
-							// TODO: get triangles normal and compare with light source normal to get local shadow
+							// Get triangles normal and compare with light source normal to get local shadow
 							glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
 							double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
 
 							firstRay.rgb.R = currentTriangle.rgb.R*shadowFact;
 							firstRay.rgb.G = currentTriangle.rgb.G*shadowFact;
 							firstRay.rgb.B = currentTriangle.rgb.B*shadowFact;
-							
-							//firstRay.rgb = currentTriangle.rgb;
 						}
 					}
 				}
 			}
-			//std::cout << t_nearest << std::endl;
 			// Find intersection point between ray and implicit sphere
 			glm::vec3 sphereC = glm::vec3(8.0, -3.0, -1.0);
 			double sphereR = 1.5;
@@ -113,12 +106,10 @@ void rendersegment(int s, int e) {
 			double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
 			double delta = (b * b / 4) - c;
 
-
 			// Ray intersects with sphere
 			if (delta > 0) {
 				
 				t = -b / 2 - sqrt(delta);
-				//std::cout << t_nearest << ",    " << t << std::endl;
 				
 				if (t_nearest > t) {
 
@@ -127,21 +118,17 @@ void rendersegment(int s, int e) {
 					firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction * t;
 					glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphereC);
 
-					//std::cout << "sphereNorm: (" << sphereNorm.x << "," << sphereNorm.y << "," << sphereNorm.z << ")" << std::endl;
-
 					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
 					double shadowFact = std::max(0.0f, glm::dot(lightDirection, sphereNorm));
 
 					firstRay.rgb.R = 1.0*shadowFact;
 					firstRay.rgb.G = 0.0*shadowFact;
 					firstRay.rgb.B = 0.0*shadowFact;
-					
-					//firstRay.rgb = ColorDbl(1.0, 0.0, 0.0);
 				}
 			}
 			// Ray touches sphere
 			else if (delta == 0) {
-				//std::cout << t << std::endl;
+
 				t = -b / 2;
 
 				if (t_nearest > t) {
@@ -156,7 +143,6 @@ void rendersegment(int s, int e) {
 					firstRay.rgb.R = 1.0 * shadowFact;
 					firstRay.rgb.G = 0.0 * shadowFact;
 					firstRay.rgb.B = 0.0 * shadowFact;
-					//firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
 				}
 			}
 
@@ -250,20 +236,9 @@ void rendersegment(int s, int e) {
 			/******************************************************/
 			
 			// Store found color in rendered image
-			// TÄNK PÅ ATT TITTA EN EXTRA GÅNG HÄR, WHAI MAKE EXTRA STRONG? WHAT WRONG?
 			intensityImage[i][j][2] = firstRay.rgb.R*255;
 			intensityImage[i][j][1] = firstRay.rgb.G*255;
 			intensityImage[i][j][0] = firstRay.rgb.B*255;
-			
-			if (intensityImage[i][j][2] > i_max) {
-				i_max = intensityImage[i][j][2];
-			}
-			if (intensityImage[i][j][1] > i_max) {
-				i_max = intensityImage[i][j][1];
-			}
-			if (intensityImage[i][j][0] > i_max) {
-				i_max = intensityImage[i][j][0];
-			}
 		}
 	}
 }
@@ -294,7 +269,6 @@ int main()
 
 	for (int i = 0; i < n_threads; i++)
 		threads[i].join();
-
 
 	// Loopa igenom pixlarna igen för att hitta de starkaste intensiteterna oså
 	int i, j;

@@ -7,7 +7,7 @@ class Sphere {
 
 	public:
 
-	ColorDbl rgb;
+	ColorDbl rgb = ColorDbl(1.0, 0.0, 0.0);
 	double radius;
 	glm::vec3 position;
 	const int material = 1; // default perfect reflector/mirror (currently not implemented)

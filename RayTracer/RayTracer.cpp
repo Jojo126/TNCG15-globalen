@@ -38,6 +38,12 @@ const glm::vec3 cameraPos = camera.eye2;
 static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
 char* imageFileName = (char*)"bitmapImage.bmp";
 
+ColorDbl getColor(ColorDbl color, glm::vec3 surfaceNormal, glm::vec3 lightDir) {
+	double shadowFact = std::max(0.0f, glm::dot(lightDir, surfaceNormal));
+
+	return ColorDbl(color.R * shadowFact, color.G * shadowFact, color.B * shadowFact);
+}
+
 void rendersegment(int s, int e) {
 	int i, j;
 	double i_max = 0;
@@ -62,27 +68,40 @@ void rendersegment(int s, int e) {
 				if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
 					// Get triangles normal and compare with light source normal to get local shadow
 					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-					double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
-
-					firstRay.rgb.R = currentTriangle.rgb.R * shadowFact;
-					firstRay.rgb.G = currentTriangle.rgb.G * shadowFact;
-					firstRay.rgb.B = currentTriangle.rgb.B * shadowFact;
+					firstRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
 				}
 			}
 
 			// Add sphere into scene
 			Sphere sphere;
-			sphere.position = glm::vec3(8.0, -3.0, -1.0);
-			sphere.radius = 1.5;
+			sphere.position = glm::vec3(4.0, -2.0, 1.0);
+			sphere.radius = 1.0;
+
 			if (sphere.getIntersectionPoint(firstRay, t_nearest)) {
 				glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphere.position);
-
 				glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-				double shadowFact = std::max(0.0f, glm::dot(lightDirection, sphereNorm));
 
-				firstRay.rgb.R = 1.0 * shadowFact;
-				firstRay.rgb.G = 0.0 * shadowFact;
-				firstRay.rgb.B = 0.0 * shadowFact;
+				// TODO: find direction of reflecting ray and find next intersection point for it
+				// Get that objects color and save it in this ray
+				Ray reflectionRay;
+				reflectionRay.startPoint = firstRay.endPoint;
+
+				reflectionRay.direction.direction = glm::vec3(firstRay.direction.direction - sphereNorm * (2.0f * glm::dot(firstRay.direction.direction, sphereNorm)));				
+
+				for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
+					Triangle currentTriangle = *it;
+
+					t_nearest = INFINITY;
+					if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
+						// Get triangles normal and compare with light source normal to get local shadow
+						glm::vec3 lightDirection = glm::normalize(scene.lightSource - reflectionRay.endPoint);
+						reflectionRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
+					}
+				}
+
+				firstRay.rgb = reflectionRay.rgb;
+
+				//firstRay.rgb = getColor(sphere.rgb, sphereNorm, lightDirection);
 			}
 
 

@@ -8,6 +8,7 @@
 #include "Ray.h"
 #include <thread>
 #include <array>
+#include <algorithm>
 
 // !!!!!!!!!! Fixa datastruktur som store:ar bildvärden innan 
 // vi lägger in dom till bilden bc char kan inte innehålla floats -> gör om värden till 0 ish !!!!!!!!!!!!
@@ -93,7 +94,7 @@ void rendersegment(int s, int e) {
 
 							// TODO: get triangles normal and compare with light source normal to get local shadow
 							glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-							double shadowFact = glm::dot(lightDirection, currentTriangle.normal.direction);
+							double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
 
 							firstRay.rgb.R = currentTriangle.rgb.R*shadowFact;
 							firstRay.rgb.G = currentTriangle.rgb.G*shadowFact;
@@ -129,7 +130,7 @@ void rendersegment(int s, int e) {
 					//std::cout << "sphereNorm: (" << sphereNorm.x << "," << sphereNorm.y << "," << sphereNorm.z << ")" << std::endl;
 
 					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-					double shadowFact = glm::dot(lightDirection, sphereNorm);
+					double shadowFact = std::max(0.0f, glm::dot(lightDirection, sphereNorm));
 
 					firstRay.rgb.R = 1.0*shadowFact;
 					firstRay.rgb.G = 0.0*shadowFact;
@@ -150,7 +151,7 @@ void rendersegment(int s, int e) {
 
 					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
 					glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphereC);
-					double shadowFact = glm::dot(lightDirection, sphereNorm);
+					double shadowFact = std::max(0.0f, glm::dot(lightDirection, sphereNorm));
 
 					firstRay.rgb.R = 1.0 * shadowFact;
 					firstRay.rgb.G = 0.0 * shadowFact;

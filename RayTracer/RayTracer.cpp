@@ -1,14 +1,17 @@
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
+#include <thread>
+#include <array>
+#include <algorithm>
 #include <glm/glm.hpp>
+
 #include "BmpSave.h"
 #include "Scene.h"
 #include "Camera.h"
 #include "Ray.h"
-#include <thread>
-#include <array>
-#include <algorithm>
+#include "Sphere.h"
+
 
 // 1. Fixa perfect reflector
 //		?. add material properties?? istället för att hårdkoda att sfären är en perfect reflector
@@ -99,52 +102,13 @@ void rendersegment(int s, int e) {
 					}
 				}
 			}
-			// Find intersection point between ray and implicit sphere
-			glm::vec3 sphereC = glm::vec3(8.0, -3.0, -1.0);
-			double sphereR = 1.5;
-			double b = glm::dot(2.0f * glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
-			double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
-			double delta = (b * b / 4) - c;
 
-			// Ray intersects with sphere
-			if (delta > 0) {
-				
-				t = -b / 2 - sqrt(delta);
-				
-				if (t_nearest > t) {
+			// Add sphere into scene
+			Sphere sphere;
+			sphere.position = glm::vec3(8.0, -3.0, -1.0);
+			sphere.radius = 1.5;
+			sphere.getIntersectionPoint(firstRay, scene, t_nearest);
 
-					t_nearest = t;
-					
-					firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction * t;
-					glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphereC);
-
-					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-					double shadowFact = std::max(0.0f, glm::dot(lightDirection, sphereNorm));
-
-					firstRay.rgb.R = 1.0*shadowFact;
-					firstRay.rgb.G = 0.0*shadowFact;
-					firstRay.rgb.B = 0.0*shadowFact;
-				}
-			}
-			// Ray touches sphere
-			else if (delta == 0) {
-
-				t = -b / 2;
-
-				if (t_nearest > t) {
-					t_nearest = t;
-
-					firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction * t;
-
-					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-					glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphereC);
-					double shadowFact = std::max(0.0f, glm::dot(lightDirection, sphereNorm));
-
-					firstRay.rgb.R = 1.0 * shadowFact;
-					firstRay.rgb.G = 0.0 * shadowFact;
-					firstRay.rgb.B = 0.0 * shadowFact;
-				}
-			}
 
 			/******************* Shadow Rays *********************/
 			// Save sphere or triangle index when intersection done on them?

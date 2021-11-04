@@ -59,47 +59,14 @@ void rendersegment(int s, int e) {
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
 
-				// Rename triangle vertices
-				glm::vec3 p_s = firstRay.startPoint;
-				glm::vec3 p_e = pixelCoord;
-				glm::vec3 v0 = currentTriangle.v1.coords;
-				glm::vec3 v1 = currentTriangle.v2.coords;
-				glm::vec3 v2 = currentTriangle.v3.coords;
+				if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
+					// Get triangles normal and compare with light source normal to get local shadow
+					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
+					double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
 
-				glm::vec3 T = p_s - v0; // T = P_s - v_0
-				glm::vec3 E1 = v1 - v0;
-				glm::vec3 E2 = v2 - v0;
-				glm::vec3 D = p_e - p_s; // D = P_e - P_s
-				glm::vec3 P = glm::cross(D, E2); // P = D x E_2
-				glm::vec3 Q = glm::cross(T, E1); // Q = T x E_1 
-
-				double denom = glm::dot(P, E1);
-
-				if (denom != 0) {
-					t = glm::dot(Q, E2) / denom;
-					double u = glm::dot(P, T) / denom;
-					double v = glm::dot(Q, D) / denom;
-
-					// Check if point inside triangle
-					// t > 0: triangle in front of camera 
-					if (t > 0 && u >= 0 && v >= 0 && u + v <= 1) {
-
-						// Need only color from triangle with nearest intersection point to p_s
-						if (t_nearest > t) {
-							t_nearest = t;
-
-							// Get calculated intersectionpoint and color for pixel from traced ray
-							firstRay.endPoint = firstRay.startPoint + firstRay.direction.direction*t;
-
-							// Get triangles normal and compare with light source normal to get local shadow
-							glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-							double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
-
-							firstRay.rgb.R = currentTriangle.rgb.R*shadowFact;
-							firstRay.rgb.G = currentTriangle.rgb.G*shadowFact;
-							firstRay.rgb.B = currentTriangle.rgb.B*shadowFact;
-						}
-					}
+					firstRay.rgb.R = currentTriangle.rgb.R * shadowFact;
+					firstRay.rgb.G = currentTriangle.rgb.G * shadowFact;
+					firstRay.rgb.B = currentTriangle.rgb.B * shadowFact;
 				}
 			}
 
@@ -107,7 +74,16 @@ void rendersegment(int s, int e) {
 			Sphere sphere;
 			sphere.position = glm::vec3(8.0, -3.0, -1.0);
 			sphere.radius = 1.5;
-			sphere.getIntersectionPoint(firstRay, scene, t_nearest);
+			if (sphere.getIntersectionPoint(firstRay, t_nearest)) {
+				glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphere.position);
+
+				glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
+				double shadowFact = std::max(0.0f, glm::dot(lightDirection, sphereNorm));
+
+				firstRay.rgb.R = 1.0 * shadowFact;
+				firstRay.rgb.G = 0.0 * shadowFact;
+				firstRay.rgb.B = 0.0 * shadowFact;
+			}
 
 
 			/******************* Shadow Rays *********************/

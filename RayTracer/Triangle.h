@@ -29,7 +29,7 @@ class Triangle
 		
 		~Triangle() {};
 
-		/*bool getIntersectionPoint(Ray& ray, Scene scene, float& t_nearest) {
+		bool getIntersectionPoint(Ray& ray, float& t_nearest) {
 			// Rename triangle vertices
 			glm::vec3 p_s = ray.startPoint;
 			//glm::vec3 p_e = pixelCoord;
@@ -62,19 +62,11 @@ class Triangle
 						// Get calculated intersectionpoint and color for pixel from traced ray
 						ray.endPoint = ray.startPoint + ray.direction.direction * t;
 
-						// Get triangles normal and compare with light source normal to get local shadow
-						glm::vec3 lightDirection = glm::normalize(scene.lightSource - ray.endPoint);
-						double shadowFact = std::max(0.0f, glm::dot(lightDirection, this->normal.direction));
-
-						ray.rgb.R = this->rgb.R * shadowFact;
-						ray.rgb.G = this->rgb.G * shadowFact;
-						ray.rgb.B = this->rgb.B * shadowFact;
-
 						return true;
 					}
 				}
 			}
 			return false;
-		}*/
+		}
 };
 

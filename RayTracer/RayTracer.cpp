@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
@@ -73,7 +75,16 @@ void rendersegment(int s, int e) {
 				if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
 					// Get triangles normal and compare with light source normal to get local shadow
 					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-					firstRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
+					//firstRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
+
+					// TODO: make sure correct falloff value
+					float r = glm::length(firstRay.endPoint - scene.lightSource);
+					float lightIntensity = 1;
+					glm::vec3 shadedRGB = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
+
+					firstRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r;
+					firstRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g;
+					firstRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b;
 
 					// Remove shadow acne
 					firstRay.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -103,7 +114,16 @@ void rendersegment(int s, int e) {
 					if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
 						// Get triangles normal and compare with light source normal to get local shadow
 						glm::vec3 lightDirection = glm::normalize(scene.lightSource - reflectionRay.endPoint);
-						reflectionRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
+						//reflectionRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
+
+						// TODO: make sure correct falloff value
+						float r = glm::length(firstRay.endPoint - scene.lightSource);
+						float lightIntensity = 1;
+						glm::vec3 shadedRGB = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
+
+						reflectionRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r;
+						reflectionRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g;
+						reflectionRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b;
 					}
 				}
 

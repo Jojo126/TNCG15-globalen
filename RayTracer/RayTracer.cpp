@@ -121,21 +121,20 @@ void rendersegment(int s, int e) {
 			shadowRay.endPoint = scene.lightSource;
 			shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
 			float temp_t = INFINITY;
+			float distanceRaystartToLight = glm::length(shadowRay.endPoint - shadowRay.startPoint);
 			bool isOccluded = false;
-
-			// TODO: fix proper ranges for t (think shadows on objects far away from intersecting objects currently gets cropped out)
 
 			// Check if triangle is occluding
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
 
-				if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && temp_t > 0 && temp_t < 1) {
+				if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
 					isOccluded = true;
 					break;
 				}
 			}
 			// Check if sphere is occluding
-			if (sphere.getIntersectionPoint(shadowRay, temp_t) && temp_t > 0 && temp_t < 1) {
+			if (sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
 				isOccluded = true;
 			}
 

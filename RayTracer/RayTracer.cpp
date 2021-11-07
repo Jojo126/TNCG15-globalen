@@ -18,7 +18,7 @@
 // 2. hålla på med avstånd till ljuset o grejs
 // 3. shadow rays
 // 4. lambertian
-// 5. monte carlo
+// 5. monte carlo estimator
 // 6. triangel-ljuskälla i taket
 // 7. KLARA - RAPPORT :DDDDDD
 
@@ -104,93 +104,34 @@ void rendersegment(int s, int e) {
 				//firstRay.rgb = getColor(sphere.rgb, sphereNorm, lightDirection);
 			}
 
-
-			/******************* Shadow Rays *********************/
-			// Save sphere or triangle index when intersection done on them?
-			// Then check if shadow ray intersects with itself?
-
-			// Shoot shadow ray
-			/*
-			Ray shadowRay;
+			/*********** Shadow Rays (direct light) *************/
+			Ray shadowRay = Ray();
 			shadowRay.startPoint = firstRay.endPoint;
 			shadowRay.endPoint = scene.lightSource;
-			shadowRay.direction = Direction(glm::normalize(scene.lightSource - firstRay.endPoint));
-			*/
+			shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
+			float temp_t = INFINITY;
+			bool isOccluded = false;
 
-			//glm::vec3 sphereC = glm::vec3(10.0, 2.0, 1.0);
-			//double sphereR = 1.5;
-			//double b = glm::dot(2.0f * glm::normalize(firstRay.direction.direction), (firstRay.startPoint - sphereC));
-			//double c = glm::dot((firstRay.startPoint - sphereC), (firstRay.startPoint - sphereC)) - sphereR * sphereR;
-			/*
-			 b = glm::dot(2.0f * glm::normalize(shadowRay.direction.direction), (shadowRay.startPoint - sphereC));
-			 c = glm::dot((shadowRay.startPoint - sphereC), (shadowRay.startPoint - sphereC)) - sphereR * sphereR;
-			 delta = (b * b / 4) - c;
-			// Ray intersects with sphere
-			if (delta > 0) {
-				t = -b / 2 - sqrt(delta);
+			// TODO: fix shadow acne and make sure shadow rays are not intersecting with self/same area of surface 
+			// (still want opposing side of sphere to still occlude the other side)
 
-				if (t > 0.0001 && t_nearest > t) {
-					t_nearest = t;
-					firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
-				}
-			}
-			// Ray touches sphere
-			else if (delta == 0) {
-				t = -b / 2;
-
-				if (t > 0.0001 && t_nearest > t) {
-					t_nearest = t;
-					firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
-				}
-			}
-			*/
-			// Check if shadow ray intersects with scene objects between intersection point and light source
-			/*
+			// Check if triangle is occluding
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
 
-				std::cout << "new triangle" << std::endl;
-
-				//if (currentTriangle == alreadyintercetedTriangle) skip
-
-
-				// Rename traingles vertices
-				glm::vec3 p_s = shadowRay.startPoint;
-				glm::vec3 p_e = shadowRay.endPoint;
-				glm::vec3 v0 = currentTriangle.v1.coords;
-				glm::vec3 v1 = currentTriangle.v2.coords;
-				glm::vec3 v2 = currentTriangle.v3.coords;
-
-				glm::vec3 T = p_s - v0; // T = P_s - v_0
-				glm::vec3 E1 = v1 - v0;
-				glm::vec3 E2 = v2 - v0;
-				glm::vec3 D = p_e - p_s; // D = P_e - P_s
-				glm::vec3 P = glm::cross(D, E2); // P = D x E_2
-				glm::vec3 Q = glm::cross(T, E1); // Q = T x E_1
-
-				double denom = glm::dot(P, E1);
-
-				if (denom != 0) {
-					t = glm::dot(Q, E2) / denom;
-					double u = glm::dot(P, T) / denom;
-					double v = glm::dot(Q, D) / denom;
-
-					// Check if point inside triangle
-					// t > 0: triangle in front of camera
-					if (t > 0.0001 && u >= 0 && v >= 0 && u + v <= 1) {
-						std::cout << "found intersection" << std::endl;
-						if (shadowRay.startPoint + (shadowRay.direction*t).direction == shadowRay.startPoint)
-							continue;
-
-						// intersection happened
-						firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
-						//break;
-					}
+				if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && temp_t > 0 && temp_t < 1) {
+					isOccluded = true;
+					break;
 				}
-			}*/
+			}
+			// Check if sphere is occluding
+			if (sphere.getIntersectionPoint(shadowRay, temp_t) && temp_t > 0 && temp_t < 1) {
+				isOccluded = true;
+			}
 
-			// Summerar färg från flera rays (BRDF?)
-			//firstRay.rgb = shadowRay.rgb;
+			if (isOccluded) {
+				firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
+			}
 
 			/******************************************************/
 			

@@ -38,6 +38,11 @@ const glm::vec3 cameraPos = camera.eye2;
 static unsigned char image[HEIGHT][WIDTH][BYTES_PER_PIXEL];
 char* imageFileName = (char*)"bitmapImage.bmp";
 
+// Helps remove shadow acne (dark noise) by moving the intersection point by a small distance away from the intersecting surface
+// Can displace the shadows location by a small amount as an effect from displacing the intersection point
+// theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
+float shadowBias = 1e-4;
+
 ColorDbl getColor(ColorDbl color, glm::vec3 surfaceNormal, glm::vec3 lightDir) {
 	double shadowFact = std::max(0.0f, glm::dot(lightDir, surfaceNormal));
 
@@ -69,6 +74,9 @@ void rendersegment(int s, int e) {
 					// Get triangles normal and compare with light source normal to get local shadow
 					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
 					firstRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
+
+					// Remove shadow acne
+					firstRay.endPoint += currentTriangle.normal.direction * shadowBias;
 				}
 			}
 
@@ -101,6 +109,9 @@ void rendersegment(int s, int e) {
 
 				firstRay.rgb = reflectionRay.rgb;
 
+				// Removes shadow acne
+				firstRay.endPoint += sphereNorm * shadowBias;
+
 				//firstRay.rgb = getColor(sphere.rgb, sphereNorm, lightDirection);
 			}
 
@@ -112,8 +123,7 @@ void rendersegment(int s, int e) {
 			float temp_t = INFINITY;
 			bool isOccluded = false;
 
-			// TODO: fix shadow acne and make sure shadow rays are not intersecting with self/same area of surface 
-			// (still want opposing side of sphere to still occlude the other side)
+			// TODO: fix proper ranges for t (think shadows on objects far away from intersecting objects currently gets cropped out)
 
 			// Check if triangle is occluding
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {

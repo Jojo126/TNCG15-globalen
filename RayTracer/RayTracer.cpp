@@ -67,12 +67,14 @@ void rendersegment(int s, int e) {
 
 			float t;
 			float t_nearest = INFINITY;
+			bool isIntersectingMirror = false;
 
 			// Loop through all triangles in scene
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
 
 				if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
+					isIntersectingMirror = false;
 					// Get triangles normal and compare with light source normal to get local shadow
 					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
 					//firstRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
@@ -82,9 +84,11 @@ void rendersegment(int s, int e) {
 					float lightIntensity = 1;
 					glm::vec3 shadedRGB = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
 
-					firstRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r;
-					firstRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g;
-					firstRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b;
+					double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
+
+					firstRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r * shadowFact;
+					firstRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g * shadowFact;
+					firstRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b * shadowFact;
 
 					// Remove shadow acne
 					firstRay.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -97,6 +101,7 @@ void rendersegment(int s, int e) {
 			sphere.radius = 1.0;
 
 			if (sphere.getIntersectionPoint(firstRay, t_nearest)) {
+				isIntersectingMirror = true;
 				glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphere.position);
 				glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
 
@@ -121,9 +126,11 @@ void rendersegment(int s, int e) {
 						float lightIntensity = 1;
 						glm::vec3 shadedRGB = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
 
-						reflectionRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r;
-						reflectionRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g;
-						reflectionRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b;
+						double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
+
+						reflectionRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r * shadowFact;
+						reflectionRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g * shadowFact;
+						reflectionRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b * shadowFact;
 					}
 				}
 
@@ -158,7 +165,7 @@ void rendersegment(int s, int e) {
 				isOccluded = true;
 			}
 
-			if (isOccluded) {
+			if (isOccluded && !isIntersectingMirror) {
 				firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
 			}
 

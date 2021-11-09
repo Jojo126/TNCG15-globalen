@@ -45,10 +45,18 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-ColorDbl getColor(ColorDbl color, glm::vec3 surfaceNormal, glm::vec3 lightDir) {
-	double shadowFact = std::max(0.0f, glm::dot(lightDir, surfaceNormal));
+ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
 
-	return ColorDbl(color.R * shadowFact, color.G * shadowFact, color.B * shadowFact);
+	// TODO: make sure correct falloff value
+	// Decrease intensity for incoming light when surface is far away from the lightsource 
+	float r = glm::length(ray.endPoint - light);
+	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
+
+	// Get surface normal and compare with light source normal to decrease incoming light from an angle
+	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
+	double angleShade = std::max(0.0f, glm::dot(lightDirection, surfaceObject.normal.direction));
+
+	return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
 }
 
 void rendersegment(int s, int e) {
@@ -75,20 +83,8 @@ void rendersegment(int s, int e) {
 
 				if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
 					isIntersectingMirror = false;
-					// Get triangles normal and compare with light source normal to get local shadow
-					glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-					//firstRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
 
-					// TODO: make sure correct falloff value
-					float r = glm::length(firstRay.endPoint - scene.lightSource);
-					float lightIntensity = 1;
-					glm::vec3 shadedRGB = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
-
-					double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
-
-					firstRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r * shadowFact;
-					firstRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g * shadowFact;
-					firstRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b * shadowFact;
+					firstRay.rgb = getLightColor(firstRay, scene.lightSource, currentTriangle);
 
 					// Remove shadow acne
 					firstRay.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -117,29 +113,13 @@ void rendersegment(int s, int e) {
 
 					t_nearest = INFINITY;
 					if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
-						// Get triangles normal and compare with light source normal to get local shadow
-						glm::vec3 lightDirection = glm::normalize(scene.lightSource - reflectionRay.endPoint);
-						//reflectionRay.rgb = getColor(currentTriangle.rgb, currentTriangle.normal.direction, lightDirection);
-
-						// TODO: make sure correct falloff value
-						float r = glm::length(firstRay.endPoint - scene.lightSource);
-						float lightIntensity = 1;
-						glm::vec3 shadedRGB = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
-
-						double shadowFact = std::max(0.0f, glm::dot(lightDirection, currentTriangle.normal.direction));
-
-						reflectionRay.rgb.R = currentTriangle.rgb.R * shadedRGB.r * shadowFact;
-						reflectionRay.rgb.G = currentTriangle.rgb.G * shadedRGB.g * shadowFact;
-						reflectionRay.rgb.B = currentTriangle.rgb.B * shadedRGB.b * shadowFact;
+						reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);
 					}
 				}
-
 				firstRay.rgb = reflectionRay.rgb;
 
 				// Removes shadow acne
 				firstRay.endPoint += sphereNorm * shadowBias;
-
-				//firstRay.rgb = getColor(sphere.rgb, sphereNorm, lightDirection);
 			}
 
 			/*********** Shadow Rays (direct light) *************/

@@ -50,7 +50,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	// TODO: make sure correct falloff value
 	// Decrease intensity for incoming light when surface is far away from the lightsource 
 	float r = glm::length(ray.endPoint - light);
-	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
+	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
 
 	// Get surface normal and compare with light source normal to decrease incoming light from an angle
 	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);

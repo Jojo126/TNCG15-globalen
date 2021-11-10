@@ -29,6 +29,10 @@ class Triangle
 		
 		~Triangle() {};
 
+		Triangle operator=(Triangle tri) {
+			return tri;
+		}
+
 		bool getIntersectionPoint(Ray& ray, float& t_nearest) {
 			// Rename triangle vertices
 			glm::vec3 p_s = ray.startPoint;

@@ -69,6 +69,7 @@ void rendersegment(int s, int e) {
 			// Get pixelcoords from pixel index in image
 			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
 
+			/**************** Casting rays ******************/
 
 			/*** Get nearest intersection from camera on a scene object ***/
 			// Get rays direction from camera and pixel coordinates
@@ -76,7 +77,7 @@ void rendersegment(int s, int e) {
 			firstRay.startPoint = cameraPos;
 			firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 
-			float t;
+			//float t;
 			float t_nearest = INFINITY;
 			bool isIntersectingMirror = false;
 			Triangle intersectingTriangle;
@@ -170,10 +171,115 @@ void rendersegment(int s, int e) {
 
 			/************* Monte carlo estimator (indirect light) ************/
 
-			// intersectingTriangle.normal
+			// Create local coordinate system:
+			// - surface normal
+			// - projected ray onto surface plane
+			// - crossproduct between previous two vectors
+			// Create transformation matrix M with found basis axis of local system and the intersection point (local origin)
+			// Get new ray direction
+			// - randomize values for theta & phi (new reflected ray direction)
+			// - use spherical-to-carteisan coordinates equations on theta & phi to get reflected direction in carteisan coordinates
+			// - translate the reflected ray from local to global coordinates with the inverse of M
+			// Cast the reflected ray into scene and repeat previous process
+			// - return when X bounces has been made (threshold reached)
+			// Compute outgoing light from intersection point (direct+indirect light)*albedo
+			// When back at firstRay (pixels final color), divide total accumulated light with N (samples)
 
+			glm::vec3 accumulatedIndirectLight = glm::vec3(0.0, 0.0, 0.0);
+			int currentBounces = 0;
+			const int maxBounces = 1;
+
+			// Create local system
+			glm::vec3 localSysAxisY = intersectingTriangle.normal.direction;
+			// From incoming ray
+			glm::vec3 localSysAxisX = glm::normalize(firstRay.direction.direction - intersectingTriangle.normal.direction * (firstRay.direction.direction, intersectingTriangle.normal.direction));
+			glm::vec3 localSysAxisZ = glm::cross(localSysAxisX, localSysAxisY);
+
+			// Transformation matrix
+			glm::mat4 M_1 = { localSysAxisX.x, localSysAxisY.x, localSysAxisZ.x, 0.0f,
+							  localSysAxisX.y, localSysAxisY.y, localSysAxisZ.y, 0.0f,
+							  localSysAxisX.z, localSysAxisY.z, localSysAxisZ.z, 0.0f,
+							  0.0f, 0.0f, 0.0f, 1.0f };
+
+			glm::mat4 M_2 = { 1.0f, 0.0f, 0.0f, -firstRay.endPoint.x,
+							  0.0f, 1.0f, 0.0f, -firstRay.endPoint.y,
+							  0.0f, 0.0f, 1.0f, -firstRay.endPoint.z,
+							  0.0f, 0.0f, 0.0f, 1.0f };
+			
+			glm::mat4 M = M_1 * M_2;
+
+			float theta = ((double)rand() / (RAND_MAX)) * M_PI /2;
+			float phi = ((double)rand() / (RAND_MAX)) * 2 * M_PI;
+
+			// x = cos phi * sin theta
+			// y = sin phi * sin theta
+			// z = cos theta
+			float x_cart = glm::cos(phi) * glm::sin(theta);
+			float y_cart = glm::sin(phi) * glm::sin(theta);
+			float z_cart = glm::cos(theta);
+
+			glm::vec4 reflected_local = { x_cart, y_cart, z_cart, 1.0f };
+			glm::vec3 reflected_global = reflected_local * glm::inverse(M);
+
+			// Create new ray
+			Ray reflectedRay;
+			reflectedRay.startPoint = firstRay.endPoint;
+			reflectedRay.direction = glm::normalize(reflected_global);
+
+			//float t;
+			t_nearest = INFINITY;
+			//bool isIntersectingMirror = false;
+			//Triangle intersectingTriangle;
+
+			// Loop through all triangles in scene
+			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
+				Triangle currentTriangle = *it;
+
+				if (currentTriangle.getIntersectionPoint(reflectedRay, t_nearest)) {
+					//isIntersectingMirror = false;
+					//intersectingTriangle = currentTriangle;
+
+					reflectedRay.rgb = getLightColor(reflectedRay, scene.lightSource, currentTriangle);
+
+					// Remove shadow acne
+					reflectedRay.endPoint += currentTriangle.normal.direction * shadowBias;
+				}
+			}
+
+			firstRay.rgb.R = (firstRay.rgb.R + reflectedRay.rgb.R) * intersectingTriangle.rgb.R;
+			firstRay.rgb.G = (firstRay.rgb.G + reflectedRay.rgb.G) * intersectingTriangle.rgb.G;
+			firstRay.rgb.B = (firstRay.rgb.B + reflectedRay.rgb.B) * intersectingTriangle.rgb.B;
+
+			// from scratchaipxel
+			// Vec3f Nt, Nb; 
+			/*void createCoordinateSystem(const Vec3f & N, Vec3f & Nt, Vec3f & Nb)
+			{
+				if (std::fabs(N.x) > std::fabs(N.y))
+					Nt = Vec3f(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
+				else
+					Nt = Vec3f(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
+				Nb = N.crossProduct(Nt);
+			}*/
+			/*float pdf = 1 / (2 * M_PI); 
+                for (uint32_t n = 0; n < N; ++n) { 
+                    float r1 = distribution(generator); 
+                    float r2 = distribution(generator); 
+                    Vec3f sample = uniformSampleHemisphere(r1, r2); 
+                    Vec3f sampleWorld( 
+                        sample.x * Nb.x + sample.y * hitNormal.x + sample.z * Nt.x, 
+                        sample.x * Nb.y + sample.y * hitNormal.y + sample.z * Nt.y, 
+                        sample.x * Nb.z + sample.y * hitNormal.z + sample.z * Nt.z); 
+                    // don't forget to divide by PDF and multiply by cos(theta)
+                    indirectLigthing += r1 * castRay(hitPoint + sampleWorld * options.bias, 
+                        sampleWorld, objects, lights, options, depth + 1) / pdf; 
+                } 
+                // divide by N
+                indirectLigthing /= (float)N; 
+				*/
 
 			/******************************************************/
+
+			/**************** Casting rays - end ******************/
 			
 			// Store found color of pixel in rendered image
 			intensityImage[i][j][2] = firstRay.rgb.R*255;

@@ -35,8 +35,7 @@ Scene scene;
 Camera camera;
 const glm::vec3 cameraPos = camera.eye2;
 
-int currentBounces = 0;
-const int maxBounces = 1;
+const int maxBounces = 0;
 
 // Helps remove shadow acne (dark noise) by moving the intersection point by a small distance away from the intersecting surface
 // Can displace the shadows location by a small amount as an effect from displacing the intersection point
@@ -44,7 +43,7 @@ const int maxBounces = 1;
 float shadowBias = 1e-4;
 
 // Forward declaration for getIndirectLight()
-void castRay(Ray& firstRay);
+void castRay(Ray& firstRay, int currentBounces);
 
 // To be deprecated
 ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
@@ -150,7 +149,7 @@ ColorDbl getDirectLight(Ray& firstRay, bool isIntersectingMirror) {
 }
 
 // Monte Carlo estimator
-ColorDbl getIndirectLight(Ray& firstRay, Triangle intersectingTriangle) {
+ColorDbl getIndirectLight(Ray& firstRay, Triangle intersectingTriangle, int currentBounces) {
 	// Create local coordinate system:
 	// - surface normal
 	// - projected ray onto surface plane
@@ -205,7 +204,8 @@ ColorDbl getIndirectLight(Ray& firstRay, Triangle intersectingTriangle) {
 	reflectedRay.direction = glm::normalize(reflected_global);
 
 	// Needs base case in castRay before recursion can be made
-	//castRay(reflectedRay);
+	currentBounces++; 
+	castRay(reflectedRay, currentBounces);
 
 	/*
 	//float t;
@@ -229,26 +229,35 @@ ColorDbl getIndirectLight(Ray& firstRay, Triangle intersectingTriangle) {
 	}*/
 
 	return ColorDbl(0.001, 0.0, 0.0);
+	//return reflectedRay.rgb;
 }
 
 // Shoot a ray into the scene and get the intersecting points color
-void castRay(Ray& firstRay) {
-	// Ger nästan helt vit bild om används.. dunno why ¯\_(''/)_/¯
-	/*if (currentBounces >= maxBounces) {
+void castRay(Ray& firstRay, int currentBounces) {
+	if (currentBounces > maxBounces) {
+		//std::cout << currentBounces << ", " << maxBounces << " returning" << std::endl;
 		return;
 	}
-	currentBounces++;*/
+	else {
+		//std::cout << "max bounces not reached" << std::endl;
+	}
 
 	bool isIntersectingMirror = false;
 	Triangle intersectingTriangle;
 
 	findIntersectionPoint(firstRay, intersectingTriangle, isIntersectingMirror);
 
+	// if intersecting mirror, cast reflected ray and skip shadowray/montecarlo
+	if (isIntersectingMirror) {
+		currentBounces++;
+		castRay(firstRay, currentBounces);
+	}
+
 	// Shadow Rays
 	ColorDbl directDiffuse = getDirectLight(firstRay, isIntersectingMirror);
 
 	// Monte carlo estimator
-	ColorDbl indirectDiffuse = getIndirectLight(firstRay, intersectingTriangle);
+	ColorDbl indirectDiffuse = getIndirectLight(firstRay, intersectingTriangle, currentBounces);
 
 	firstRay.rgb.R = (directDiffuse.R / M_PI + 2 * indirectDiffuse.R) * intersectingTriangle.rgb.R;
 	firstRay.rgb.G = (directDiffuse.G / M_PI + 2 * indirectDiffuse.G) * intersectingTriangle.rgb.G;
@@ -261,6 +270,8 @@ void rendersegment(int s, int e) {
 	for (i = s; i < e; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 
+			int currentBounces = 0;
+
 			// Get pixelcoords from pixel index in image
 			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
 
@@ -270,7 +281,7 @@ void rendersegment(int s, int e) {
 			firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 
 			// Cast ray into scene and get the pixels color
-			castRay(firstRay);
+			castRay(firstRay, currentBounces);
 
 			// Store found color of pixel in rendered image
 			intensityImage[i][j][2] = firstRay.rgb.R * 255;

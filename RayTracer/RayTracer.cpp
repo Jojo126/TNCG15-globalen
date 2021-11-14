@@ -44,7 +44,7 @@ const int maxBounces = 3;
 float shadowBias = 1e-4;
 
 // Forward declaration for getIndirectLight()
-ColorDbl castRay(Ray& ray, int currentBounces);
+ColorDbl castRay(Ray& ray);
 
 // To be deprecated
 ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
@@ -52,7 +52,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	// TODO: make sure correct falloff value
 	// Decrease intensity for incoming light when surface is far away from the lightsource 
 	float r = glm::length(ray.endPoint - light);
-	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
+	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
 
 	// Get surface normal and compare with light source normal to decrease incoming light from an angle
 	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
@@ -88,30 +88,14 @@ void findIntersectionPoint(Ray& firstRay, Triangle& intersectingTriangle, bool& 
 		/* Send a reflection ray to get color from reflecting objects around the sphere
 		 * because the sphere uses a perfect reflection material */
 
-		/*************** TODO: move to castRay? ****************/
 		// Create a reflected ray
 		Ray reflectionRay;
 		reflectionRay.startPoint = firstRay.endPoint;
 		reflectionRay.direction.direction = glm::vec3(firstRay.direction.direction - sphereNorm * (2.0f * glm::dot(firstRay.direction.direction, sphereNorm)));
+		reflectionRay.recursionDepth = firstRay.recursionDepth;
 
-		//castRay(reflectionRay);
-		/******* TODO: let castRay indirectly handle? *******/
-
-		// Loop through all other objects in the scene (i.e. currently only triangles) and find nearest intersectionpoint for the reflected ray
-		// Then get the color from the found intersectionpoint and use it on the sphere
-		for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
-			Triangle currentTriangle = *it;
-
-			t_nearest = INFINITY;
-			if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
-				intersectingTriangle = currentTriangle;
-				reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);
-			}
-		}
-
-		/*******************************/
-
-		firstRay.rgb = reflectionRay.rgb;
+		firstRay.direction = reflectionRay.direction;
+		firstRay.recursionDepth--;
 
 		// Removes shadow acne
 		firstRay.endPoint += sphereNorm * shadowBias;
@@ -155,7 +139,7 @@ ColorDbl getDirectLight(Ray& firstRay) {
 }
 
 // Monte Carlo estimator
-ColorDbl getIndirectLight(Ray firstRay, Triangle intersectingTriangle, int currentBounces) {
+ColorDbl getIndirectLight(Ray firstRay, Triangle intersectingTriangle) {
 	// Create local coordinate system:
 	// - surface normal
 	// - projected ray onto surface plane
@@ -206,26 +190,27 @@ ColorDbl getIndirectLight(Ray firstRay, Triangle intersectingTriangle, int curre
 	Ray reflectedRay;
 	reflectedRay.startPoint = firstRay.endPoint;
 	reflectedRay.direction = glm::normalize(reflected_global);
+	reflectedRay.recursionDepth = firstRay.recursionDepth;
 
 	// Follow new ray for indirect light recursively
 	// TODO: make sure indirectlight gets accumulated between bounces
-	ColorDbl temp = castRay(reflectedRay, currentBounces);
+	ColorDbl temp = castRay(reflectedRay);
 	accumulatedIndirectLight.R += temp.R;
 	accumulatedIndirectLight.G += temp.G;
 	accumulatedIndirectLight.B += temp.B;
 	//return accumulatedIndirectLight;
-	//return castRay(reflectedRay, currentBounces);
+	//return castRay(reflectedRay);
 
 	return ColorDbl(0.001, 0.0, 0.0);
 	//return reflectedRay.rgb;
 }
 
 // Shoot a ray into the scene and get the intersecting points color
-ColorDbl castRay(Ray& ray, int currentBounces) {
+ColorDbl castRay(Ray& ray) {
 	// Max depth in recursion for indirect light
-	currentBounces++;
+	ray.recursionDepth++;
 
-	if (currentBounces > maxBounces) {
+	if (ray.recursionDepth > maxBounces) {
 		return ray.rgb;
 	}
 
@@ -237,14 +222,14 @@ ColorDbl castRay(Ray& ray, int currentBounces) {
 
 	// If intersecting mirror, cast reflected ray and skip shadowray/montecarlo
 	if (isIntersectingMirror) {
-		return castRay(ray, currentBounces);
+		return castRay(ray);
 	}
 	else {
 		// Shadow Rays
 		ColorDbl directDiffuse = getDirectLight(ray);
 
 		// Monte carlo estimator
-		ColorDbl indirectDiffuse = getIndirectLight(ray, intersectingTriangle, currentBounces);
+		ColorDbl indirectDiffuse = getIndirectLight(ray, intersectingTriangle);
 
 		// Combine direct and indirect light for final color in this ray
 		// Scratchapixel.com: hitColor = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
@@ -261,8 +246,6 @@ void rendersegment(int s, int e) {
 	for (i = s; i < e; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 
-			int currentBounces = 0;
-
 			// Get pixelcoords from pixel index in image
 			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
 
@@ -272,7 +255,7 @@ void rendersegment(int s, int e) {
 			firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 
 			// Cast ray into scene and get the pixels color
-			ColorDbl finalColor = castRay(firstRay, currentBounces);
+			ColorDbl finalColor = castRay(firstRay);
 
 			// Store found color of pixel in rendered image
 			intensityImage[i][j][2] = finalColor.R * 255;

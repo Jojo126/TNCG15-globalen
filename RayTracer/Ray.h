@@ -20,6 +20,7 @@ class Ray
 		glm::vec3 startPoint, endPoint;
 		ColorDbl rgb;
 		Direction direction;
+		int recursionDepth = 0;
 
 		//Ray(Vertex startP, int i, int j);
 		Ray() = default;

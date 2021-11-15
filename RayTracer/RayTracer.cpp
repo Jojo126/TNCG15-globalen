@@ -191,14 +191,34 @@ ColorDbl getIndirectLight(Ray firstRay, Triangle intersectingTriangle) {
 
 // Shoot a ray into the scene and get the intersecting points color
 ColorDbl castRay(Ray ray) {
+	Triangle intersectingTriangle;
 	// Max depth in recursion for indirect light
 	if (ray.recursionDepth >= maxBounces) {
-		return ColorDbl(0.0, 0.0, 0.0);
+		if (ray.isIntersectingMirror) {
+			return ColorDbl(0.0, 0.0, 0.0);
+		}
+		else {
+			// Monte carlo estimator
+			//ColorDbl indirectDiffuse = getIndirectLight(ray, intersectingTriangle);
+			ColorDbl indirectDiffuse = ColorDbl(0.0, 0.0, 0.0);
+
+			// Shadow Rays
+			ColorDbl directDiffuse = getDirectLight(ray, intersectingTriangle);
+
+			// Combine direct and indirect light for final color in this ray
+			// Scratchapixel.com: hitColor = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
+			ColorDbl rayColor;
+			rayColor.R = (directDiffuse.R / M_PI + 2 * indirectDiffuse.R) * intersectingTriangle.rgb.R;
+			rayColor.G = (directDiffuse.G / M_PI + 2 * indirectDiffuse.G) * intersectingTriangle.rgb.G;
+			rayColor.B = (directDiffuse.B / M_PI + 2 * indirectDiffuse.B) * intersectingTriangle.rgb.B;
+
+			return rayColor;
+		}
 	}
 	ray.recursionDepth++;
 
 	ray.isIntersectingMirror = false;
-	Triangle intersectingTriangle; // The intersected triangles object (if is intersecting one)
+	 // The intersected triangles object (if is intersecting one)
 
 	// Find nearest intersection point in scene for ray
 	findIntersectionPoint(ray, intersectingTriangle);
@@ -207,6 +227,9 @@ ColorDbl castRay(Ray ray) {
 	if (ray.isIntersectingMirror) {
 		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - scene.sphere.position);
 		ray.direction.direction = glm::normalize(ray.endPoint - ray.startPoint);
+
+		// Removes shadow acne
+		//ray.endPoint += sphereNorm * shadowBias;
 
 		/* Send a reflection ray to get color from reflecting objects around the sphere
 		 * because the sphere uses a perfect reflection material */
@@ -218,9 +241,6 @@ ColorDbl castRay(Ray ray) {
 		reflectionRay.recursionDepth = ray.recursionDepth;
 
 		ray.recursionDepth--;
-
-		// Removes shadow acne
-		ray.endPoint += sphereNorm * shadowBias;
 
 		return castRay(ray);
 	}

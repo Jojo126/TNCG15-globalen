@@ -9,7 +9,7 @@ the end point is located. The ray color is a ColorDbl.
 
 
 #pragma once
-//#include "Triangle.h"
+//#include "Triangle.h" //Triangle already dependent on Ray...
 #include "ColorDbl.h"
 #include "Direction.h"
 #include <glm/glm.hpp>

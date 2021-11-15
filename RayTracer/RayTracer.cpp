@@ -36,7 +36,7 @@ Camera camera;
 const glm::vec3 cameraPos = camera.eye2;
 
 // Max recursion depth for indirect light
-const int maxBounces = 3;
+const int maxBounces = 1;
 
 // Helps remove shadow acne (dark noise) by moving the intersection point by a small distance away from the intersecting surface
 // Can displace the shadows location by a small amount as an effect from displacing the intersection point
@@ -44,7 +44,7 @@ const int maxBounces = 3;
 float shadowBias = 1e-4;
 
 // Forward declaration for getIndirectLight()
-ColorDbl castRay(Ray& ray);
+ColorDbl castRay(Ray ray);
 
 // To be deprecated
 ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
@@ -61,7 +61,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
 }
 
-void findIntersectionPoint(Ray& firstRay, Triangle& intersectingTriangle, bool& isIntersectingMirror) {
+void findIntersectionPoint(Ray& firstRay, Triangle& intersectingTriangle) {
 	float t_nearest = INFINITY;
 
 	// Loop through all triangles in scene
@@ -69,7 +69,6 @@ void findIntersectionPoint(Ray& firstRay, Triangle& intersectingTriangle, bool& 
 		Triangle currentTriangle = *it;
 
 		if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
-			isIntersectingMirror = false;
 			intersectingTriangle = currentTriangle;
 
 			firstRay.rgb = getLightColor(firstRay, scene.lightSource, currentTriangle);
@@ -81,33 +80,18 @@ void findIntersectionPoint(Ray& firstRay, Triangle& intersectingTriangle, bool& 
 
 	// Check if nearest intersection is on the sphere
 	if (scene.sphere.getIntersectionPoint(firstRay, t_nearest)) {
-		isIntersectingMirror = true;
-		glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - scene.sphere.position);
-		glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-
-		/* Send a reflection ray to get color from reflecting objects around the sphere
-		 * because the sphere uses a perfect reflection material */
-
-		// Create a reflected ray
-		Ray reflectionRay;
-		reflectionRay.startPoint = firstRay.endPoint;
-		reflectionRay.direction.direction = glm::vec3(firstRay.direction.direction - sphereNorm * (2.0f * glm::dot(firstRay.direction.direction, sphereNorm)));
-		reflectionRay.recursionDepth = firstRay.recursionDepth;
-
-		firstRay.direction = reflectionRay.direction;
-		firstRay.recursionDepth--;
-
-		// Removes shadow acne
-		firstRay.endPoint += sphereNorm * shadowBias;
+		firstRay.isIntersectingMirror = true;
 	}
 }
 
 // Shadow rays
-ColorDbl getDirectLight(Ray& firstRay) {
+ColorDbl getDirectLight(Ray& firstRay, Triangle intersectingTriangle) {
 	/* When nearest color for nearest intersection is found, check if occluded by other objects in the scene i.e. no illumination from the direct light */
+	
+	//firstRay.rgb = getLightColor(firstRay, scene.lightSource, intersectingTriangle);
 
 	// Create the shadow ray
-	Ray shadowRay = Ray();
+	Ray shadowRay;
 	shadowRay.startPoint = firstRay.endPoint;
 	shadowRay.endPoint = scene.lightSource;
 	shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
@@ -206,37 +190,55 @@ ColorDbl getIndirectLight(Ray firstRay, Triangle intersectingTriangle) {
 }
 
 // Shoot a ray into the scene and get the intersecting points color
-ColorDbl castRay(Ray& ray) {
+ColorDbl castRay(Ray ray) {
 	// Max depth in recursion for indirect light
+	if (ray.recursionDepth >= maxBounces) {
+		return ColorDbl(0.0, 0.0, 0.0);
+	}
 	ray.recursionDepth++;
 
-	if (ray.recursionDepth > maxBounces) {
-		return ray.rgb;
-	}
-
-	bool isIntersectingMirror = false;
-	Triangle intersectingTriangle;
+	ray.isIntersectingMirror = false;
+	Triangle intersectingTriangle; // The intersected triangles object (if is intersecting one)
 
 	// Find nearest intersection point in scene for ray
-	findIntersectionPoint(ray, intersectingTriangle, isIntersectingMirror);
+	findIntersectionPoint(ray, intersectingTriangle);
 
 	// If intersecting mirror, cast reflected ray and skip shadowray/montecarlo
-	if (isIntersectingMirror) {
+	if (ray.isIntersectingMirror) {
+		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - scene.sphere.position);
+		ray.direction.direction = glm::normalize(ray.endPoint - ray.startPoint);
+
+		/* Send a reflection ray to get color from reflecting objects around the sphere
+		 * because the sphere uses a perfect reflection material */
+
+		 // Create a reflected ray
+		Ray reflectionRay;
+		reflectionRay.startPoint = ray.endPoint;
+		ray.direction.direction = glm::vec3(ray.direction.direction - sphereNorm * (2.0f * glm::dot(ray.direction.direction, sphereNorm)));
+		reflectionRay.recursionDepth = ray.recursionDepth;
+
+		ray.recursionDepth--;
+
+		// Removes shadow acne
+		ray.endPoint += sphereNorm * shadowBias;
+
 		return castRay(ray);
 	}
 	else {
-		// Shadow Rays
-		ColorDbl directDiffuse = getDirectLight(ray);
-
 		// Monte carlo estimator
 		ColorDbl indirectDiffuse = getIndirectLight(ray, intersectingTriangle);
 
+		// Shadow Rays
+		ColorDbl directDiffuse = getDirectLight(ray, intersectingTriangle);
+
 		// Combine direct and indirect light for final color in this ray
 		// Scratchapixel.com: hitColor = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
-		//ray.rgb.R = (directDiffuse.R / M_PI + 2 * indirectDiffuse.R) * intersectingTriangle.rgb.R;
-		//ray.rgb.G = (directDiffuse.G / M_PI + 2 * indirectDiffuse.G) * intersectingTriangle.rgb.G;
-		//ray.rgb.B = (directDiffuse.B / M_PI + 2 * indirectDiffuse.B) * intersectingTriangle.rgb.B;
-		return ColorDbl((directDiffuse.R / M_PI + 2 * indirectDiffuse.R) * intersectingTriangle.rgb.R, (directDiffuse.G / M_PI + 2 * indirectDiffuse.G) * intersectingTriangle.rgb.G, (directDiffuse.B / M_PI + 2 * indirectDiffuse.B) * intersectingTriangle.rgb.B);
+		ColorDbl rayColor;
+		rayColor.R = (directDiffuse.R / M_PI + 2 * indirectDiffuse.R) * intersectingTriangle.rgb.R;
+		rayColor.G = (directDiffuse.G / M_PI + 2 * indirectDiffuse.G) * intersectingTriangle.rgb.G;
+		rayColor.B = (directDiffuse.B / M_PI + 2 * indirectDiffuse.B) * intersectingTriangle.rgb.B;
+
+		return rayColor;
 	}
 }
 

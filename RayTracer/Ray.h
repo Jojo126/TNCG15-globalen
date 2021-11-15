@@ -21,6 +21,7 @@ class Ray
 		ColorDbl rgb;
 		Direction direction;
 		int recursionDepth = 0;
+		bool isIntersectingMirror = false;
 
 		//Ray(Vertex startP, int i, int j);
 		Ray() = default;

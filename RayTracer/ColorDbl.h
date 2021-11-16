@@ -22,6 +22,13 @@ class ColorDbl
 			return os;
 		}
 
+		ColorDbl operator+=(ColorDbl inRGB) {
+			this->R += inRGB.R;
+			this->G += inRGB.G;
+			this->B += inRGB.B;
+			return *this;
+		}
+
 		~ColorDbl() {};
 };
 

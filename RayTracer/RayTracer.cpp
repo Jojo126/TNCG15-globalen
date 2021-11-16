@@ -152,32 +152,25 @@ ColorDbl castRay(Ray ray) {
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	ray = findIntersection(ray);
 
-	// Base case: if max recursive depth, don't look for indirect light
+	// Base case: If reached max recursive depth, don't look for indirect light
 	if (ray.depth >= MAX_DEPTH) {
 		ColorDbl directLight = getDirectLight(ray);
 		return directLight;
 	}
+	ray.depth++;
 
-	/*********** Shadow Rays (direct light) *************/
-	
+	// Direct Light (Shadow Rays)	
 	ColorDbl directLight = getDirectLight(ray);
-
-	/****************************************************/
 	
-	/************* Monte carlo estimator (indirect light) ************/	
+	// Indirect Light (Monte carlo estimator)
+	ColorDbl indirectLight = castRay(ray);
+	indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
 
-	Ray newRay = ray;
-	newRay.depth++;
-	ColorDbl indirectLight = castRay(newRay);
-	indirectLight = ColorDbl(0.01, 0.0, 0.0); // temp color
-
-	/*****************************************************************/
-
-	// Not correct way to combine light types, just a temp method
-	ColorDbl combinedLight;
-	combinedLight.R = directLight.R + indirectLight.R;
-	combinedLight.G = directLight.G + indirectLight.G;
-	combinedLight.B = directLight.B + indirectLight.B;
+	// Combine the two types of light into one final color for the intersection point
+	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
+	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * ray.intersectingTriangle.rgb.R;
+	combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * ray.intersectingTriangle.rgb.G;
+	combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * ray.intersectingTriangle.rgb.B;
 	return combinedLight;
 }
 

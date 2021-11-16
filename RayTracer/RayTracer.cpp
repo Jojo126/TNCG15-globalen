@@ -148,6 +148,22 @@ ColorDbl getDirectLight(Ray ray) {
 	return ray.rgb;
 }
 
+Ray getNewReflectedRay(Ray oldRay) {
+	/* Outlines for finding a new reflected ray
+	* 1. Create local coordinate system
+	*  - Project incoming ray onto surfaces plane (x or y...)
+	*  - Surfaces normal (z)
+	*  - crossproduct between two previous base-vectors (obs, want a right handed system)
+	* 2. Find transformation matrix M
+	* 3. Generate random spherical coordinates on intersections hemisphere
+	* 4. Convert spherical coordinates to local carteisan coordinates with spherical-to-carteisan equations
+	* 5. Convert local vector to global coordinate system with inverted M matrix
+	* 6. Return the found vector!
+	*/
+
+	return oldRay;
+}
+
 ColorDbl castRay(Ray ray) {
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	ray = findIntersection(ray);
@@ -163,7 +179,8 @@ ColorDbl castRay(Ray ray) {
 	ColorDbl directLight = getDirectLight(ray);
 	
 	// Indirect Light (Monte carlo estimator)
-	ColorDbl indirectLight = castRay(ray);
+	Ray reflectedRay = getNewReflectedRay(ray);
+	ColorDbl indirectLight = castRay(reflectedRay);
 	indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
 
 	// Combine the two types of light into one final color for the intersection point

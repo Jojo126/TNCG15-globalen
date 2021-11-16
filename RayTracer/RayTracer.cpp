@@ -60,123 +60,132 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
 }
 
+ColorDbl castRay(Ray ray) {
+	// Base case: if max depth, compute combined color and return
+	float t;
+	float t_nearest = INFINITY;
+
+	// Loop through all triangles in scene
+	for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
+		Triangle currentTriangle = *it;
+
+		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
+			ray.isIntersectingMirror = false;
+			ray.intersectingTriangle = currentTriangle;
+
+			ray.rgb = getLightColor(ray, scene.lightSource, currentTriangle);
+
+			// Remove shadow acne
+			ray.endPoint += currentTriangle.normal.direction * shadowBias;
+		}
+	}
+
+	// Add sphere into scene
+	Sphere sphere;
+	sphere.position = glm::vec3(4.0, -2.0, 1.0);
+	sphere.radius = 1.0;
+
+	// Check if nearest intersection is on the sphere
+	if (sphere.getIntersectionPoint(ray, t_nearest)) {
+		ray.isIntersectingMirror = true;
+		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - sphere.position);
+		glm::vec3 lightDirection = glm::normalize(scene.lightSource - ray.endPoint);
+
+		/* Send a reflection ray to get color from reflecting objects around the sphere
+		 * because the sphere uses a perfect reflection material */
+
+		 // Create a reflected ray
+		Ray reflectionRay;
+		reflectionRay.startPoint = ray.endPoint;
+		reflectionRay.direction.direction = glm::vec3(ray.direction.direction - sphereNorm * (2.0f * glm::dot(ray.direction.direction, sphereNorm)));
+
+		// Loop through all other objects in the scene (i.e. currently only triangles) and find nearest intersectionpoint for the reflected ray
+		// Then get the color from the found intersectionpoint and use it on the sphere
+		for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
+			Triangle currentTriangle = *it;
+
+			t_nearest = INFINITY;
+			if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
+				reflectionRay.intersectingTriangle = currentTriangle;
+				reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);
+			}
+		}
+		ray.rgb = reflectionRay.rgb;
+
+		// Removes shadow acne
+		ray.endPoint += sphereNorm * shadowBias;
+	}
+
+	/*********** Shadow Rays (direct light) *************/
+	/* When nearest color for nearest intersection is found, check if occluded by other objects in the scene i.e. no illumination from the direct light */
+
+	// Create the shadow ray
+	Ray shadowRay = Ray();
+	shadowRay.startPoint = ray.endPoint;
+	shadowRay.endPoint = scene.lightSource;
+	shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
+
+	// IntersectingObject
+
+	float temp_t = INFINITY;
+	float distanceRaystartToLight = glm::length(shadowRay.endPoint - shadowRay.startPoint);
+	bool isOccluded = false; // Flag to prevent the sphere (mirror) to become occluded
+
+	// Check if triangle is occluding
+	for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
+		Triangle currentTriangle = *it;
+
+		if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+			isOccluded = true;
+			break;
+		}
+	}
+	// Check if sphere is occluding
+	if (sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+		isOccluded = true;
+	}
+
+	// Change color of ray to black because occluded by other object(s)
+	if (isOccluded && !ray.isIntersectingMirror) {
+		ray.rgb = ColorDbl(0.0, 0.0, 0.0);
+	}
+
+	/******************************************************/
+
+	/************* Monte carlo estimator (indirect light) ************/
+
+	// intersectingTriangle.normal
+
+
+	/******************************************************/
+
+	return ray.rgb;
+
+}
+
+void renderPixel(int i, int j) {
+	// Get pixelcoords from pixel index in image
+	glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
+
+	// Create first ray to be casted into scene
+	Ray firstRay;
+	firstRay.startPoint = cameraPos;
+	firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
+
+	ColorDbl  finalColor = castRay(firstRay);
+
+	// Store found color of pixel in rendered image
+	intensityImage[i][j][2] = finalColor.R * 255;
+	intensityImage[i][j][1] = finalColor.G * 255;
+	intensityImage[i][j][0] = finalColor.B * 255;
+}
+
 void rendersegment(int s, int e) {
 	int i, j;
 	double i_max = 0;
 	for (i = s; i < e; i++) {
 		for (j = 0; j < HEIGHT; j++) {
-
-			// Get pixelcoords from pixel index in image
-			glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
-
-
-			/*** Get nearest intersection from camera on a scene object ***/
-			// Get rays direction from camera and pixel coordinates
-			Ray firstRay;
-			firstRay.startPoint = cameraPos;
-			firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
-
-			float t;
-			float t_nearest = INFINITY;
-
-			// Loop through all triangles in scene
-			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
-				Triangle currentTriangle = *it;
-
-				if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
-					firstRay.isIntersectingMirror = false;
-					firstRay.intersectingTriangle = currentTriangle;
-
-					firstRay.rgb = getLightColor(firstRay, scene.lightSource, currentTriangle);
-
-					// Remove shadow acne
-					firstRay.endPoint += currentTriangle.normal.direction * shadowBias;
-				}
-			}
-
-			// Add sphere into scene
-			Sphere sphere;
-			sphere.position = glm::vec3(4.0, -2.0, 1.0);
-			sphere.radius = 1.0;
-
-			// Check if nearest intersection is on the sphere
-			if (sphere.getIntersectionPoint(firstRay, t_nearest)) {
-				firstRay.isIntersectingMirror = true;
-				glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphere.position);
-				glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
-
-				/* Send a reflection ray to get color from reflecting objects around the sphere 
-				 * because the sphere uses a perfect reflection material */
-				
-				// Create a reflected ray
-				Ray reflectionRay;
-				reflectionRay.startPoint = firstRay.endPoint;
-				reflectionRay.direction.direction = glm::vec3(firstRay.direction.direction - sphereNorm * (2.0f * glm::dot(firstRay.direction.direction, sphereNorm)));				
-
-				// Loop through all other objects in the scene (i.e. currently only triangles) and find nearest intersectionpoint for the reflected ray
-				// Then get the color from the found intersectionpoint and use it on the sphere
-				for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
-					Triangle currentTriangle = *it;
-
-					t_nearest = INFINITY;
-					if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
-						reflectionRay.intersectingTriangle = currentTriangle;
-						reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);
-					}
-				}
-				firstRay.rgb = reflectionRay.rgb;
-
-				// Removes shadow acne
-				firstRay.endPoint += sphereNorm * shadowBias;
-			}
-
-			/*********** Shadow Rays (direct light) *************/
-			/* When nearest color for nearest intersection is found, check if occluded by other objects in the scene i.e. no illumination from the direct light */
-			
-			// Create the shadow ray
-			Ray shadowRay = Ray();
-			shadowRay.startPoint = firstRay.endPoint;
-			shadowRay.endPoint = scene.lightSource;
-			shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
-
-			// IntersectingObject
-
-			float temp_t = INFINITY;
-			float distanceRaystartToLight = glm::length(shadowRay.endPoint - shadowRay.startPoint);
-			bool isOccluded = false; // Flag to prevent the sphere (mirror) to become occluded
-
-			// Check if triangle is occluding
-			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
-				Triangle currentTriangle = *it;
-
-				if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
-					isOccluded = true;
-					break;
-				}
-			}
-			// Check if sphere is occluding
-			if (sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
-				isOccluded = true;
-			}
-
-			// Change color of ray to black because occluded by other object(s)
-			if (isOccluded && !firstRay.isIntersectingMirror) {
-				firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
-			}
-
-			/******************************************************/
-
-			/************* Monte carlo estimator (indirect light) ************/
-
-			// intersectingTriangle.normal
-
-
-			/******************************************************/
-			
-			// Store found color of pixel in rendered image
-			intensityImage[i][j][2] = firstRay.rgb.R*255;
-			intensityImage[i][j][1] = firstRay.rgb.G*255;
-			intensityImage[i][j][0] = firstRay.rgb.B*255;
+			renderPixel(i, j);
 		}
 	}
 }

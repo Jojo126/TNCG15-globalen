@@ -60,8 +60,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
 }
 
-ColorDbl castRay(Ray ray) {
-	// Base case: if max depth, compute combined color and return
+void findIntersection(Ray& ray) {
 	float t;
 	float t_nearest = INFINITY;
 
@@ -80,15 +79,10 @@ ColorDbl castRay(Ray ray) {
 		}
 	}
 
-	// Add sphere into scene
-	Sphere sphere;
-	sphere.position = glm::vec3(4.0, -2.0, 1.0);
-	sphere.radius = 1.0;
-
 	// Check if nearest intersection is on the sphere
-	if (sphere.getIntersectionPoint(ray, t_nearest)) {
+	if (scene.sphere.getIntersectionPoint(ray, t_nearest)) {
 		ray.isIntersectingMirror = true;
-		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - sphere.position);
+		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - scene.sphere.position);
 		glm::vec3 lightDirection = glm::normalize(scene.lightSource - ray.endPoint);
 
 		/* Send a reflection ray to get color from reflecting objects around the sphere
@@ -115,10 +109,9 @@ ColorDbl castRay(Ray ray) {
 		// Removes shadow acne
 		ray.endPoint += sphereNorm * shadowBias;
 	}
+}
 
-	/*********** Shadow Rays (direct light) *************/
-	/* When nearest color for nearest intersection is found, check if occluded by other objects in the scene i.e. no illumination from the direct light */
-
+ColorDbl getDirectLight(Ray ray) {
 	// Create the shadow ray
 	Ray shadowRay = Ray();
 	shadowRay.startPoint = ray.endPoint;
@@ -141,7 +134,7 @@ ColorDbl castRay(Ray ray) {
 		}
 	}
 	// Check if sphere is occluding
-	if (sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+	if (scene.sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
 		isOccluded = true;
 	}
 
@@ -150,17 +143,26 @@ ColorDbl castRay(Ray ray) {
 		ray.rgb = ColorDbl(0.0, 0.0, 0.0);
 	}
 
-	/******************************************************/
+	return ray.rgb;
+}
+
+ColorDbl castRay(Ray ray) {
+	// Base case: if max depth, compute combined color and return
+
+	findIntersection(ray);
+
+	/*********** Shadow Rays (direct light) *************/
+	/* When nearest color for nearest intersection is found, check if occluded by other objects in the scene i.e. no illumination from the direct light */
+	ColorDbl directLight = getDirectLight(ray);
+
 
 	/************* Monte carlo estimator (indirect light) ************/
 
 	// intersectingTriangle.normal
 
-
 	/******************************************************/
 
-	return ray.rgb;
-
+	return directLight;
 }
 
 void renderPixel(int i, int j) {

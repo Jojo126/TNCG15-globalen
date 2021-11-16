@@ -12,6 +12,7 @@ intersection point to the Ray arg
 #pragma once
 #include <iostream>
 #include "Triangle.h"
+#include "Sphere.h"
 #include <vector>
 
 class Scene
@@ -20,6 +21,7 @@ class Scene
 		std::vector<Vertex> mVertices;
 		std::vector<Triangle> mTriangles;
 		glm::vec3 lightSource = glm::vec3(5.0, 0.0, 4.0);
+		Sphere sphere;
 		
 		Scene() {
 			std::cout << "Creating room..." << std::endl;
@@ -115,6 +117,10 @@ class Scene
 			mTriangles.push_back(Triangle(mVertices.at(14), mVertices.at(16), mVertices.at(17), cyan, Direction(mVertices.at(14), mVertices.at(16), mVertices.at(17))));
 			mTriangles.push_back(Triangle(mVertices.at(15), mVertices.at(17), mVertices.at(16), black, Direction(mVertices.at(15), mVertices.at(17), mVertices.at(16))));
 			
+			// Add sphere into scene
+			sphere.position = glm::vec3(4.0, -2.0, 1.0);
+			sphere.radius = 1.0;
+
 			std::cout << "Room created." << std::endl;
 		}
 			

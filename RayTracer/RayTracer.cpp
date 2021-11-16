@@ -218,6 +218,7 @@ ColorDbl castRay(Ray ray) {
 	ColorDbl indirectLight = castRay(reflectedRay);
 	//indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
 
+	// Move to last step when storing pixel color?
 	// Combine the two types of light into one final color for the intersection point
 	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
 	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * ray.intersectingTriangle.rgb.R;
@@ -234,13 +235,22 @@ void renderPixel(int i, int j) {
 	Ray firstRay;
 	firstRay.startPoint = cameraPos;
 	firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
+	firstRay = findIntersection(firstRay);
+	ColorDbl directLight = getDirectLight(firstRay);
+	
 
-	ColorDbl  finalColor = castRay(firstRay);
+	ColorDbl indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
+	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
+	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;
+	combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay.intersectingTriangle.rgb.G;
+	combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay.intersectingTriangle.rgb.B;
+
+	//ColorDbl  finalColor = castRay(firstRay);
 
 	// Store found color of pixel in rendered image
-	intensityImage[i][j][2] = finalColor.R * 255;
-	intensityImage[i][j][1] = finalColor.G * 255;
-	intensityImage[i][j][0] = finalColor.B * 255;
+	intensityImage[i][j][2] = combinedLight.R * 255;
+	intensityImage[i][j][1] = combinedLight.G * 255;
+	intensityImage[i][j][0] = combinedLight.B * 255;
 }
 
 void rendersegment(int s, int e) {

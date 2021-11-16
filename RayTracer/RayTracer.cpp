@@ -78,16 +78,14 @@ void rendersegment(int s, int e) {
 
 			float t;
 			float t_nearest = INFINITY;
-			bool isIntersectingMirror = false;
-			Triangle intersectingTriangle;
 
 			// Loop through all triangles in scene
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
 
 				if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
-					isIntersectingMirror = false;
-					intersectingTriangle = currentTriangle;
+					firstRay.isIntersectingMirror = false;
+					firstRay.intersectingTriangle = currentTriangle;
 
 					firstRay.rgb = getLightColor(firstRay, scene.lightSource, currentTriangle);
 
@@ -103,7 +101,7 @@ void rendersegment(int s, int e) {
 
 			// Check if nearest intersection is on the sphere
 			if (sphere.getIntersectionPoint(firstRay, t_nearest)) {
-				isIntersectingMirror = true;
+				firstRay.isIntersectingMirror = true;
 				glm::vec3 sphereNorm = glm::normalize(firstRay.endPoint - sphere.position);
 				glm::vec3 lightDirection = glm::normalize(scene.lightSource - firstRay.endPoint);
 
@@ -122,7 +120,7 @@ void rendersegment(int s, int e) {
 
 					t_nearest = INFINITY;
 					if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
-						intersectingTriangle = currentTriangle;
+						reflectionRay.intersectingTriangle = currentTriangle;
 						reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);
 					}
 				}
@@ -162,7 +160,7 @@ void rendersegment(int s, int e) {
 			}
 
 			// Change color of ray to black because occluded by other object(s)
-			if (isOccluded && !isIntersectingMirror) {
+			if (isOccluded && !firstRay.isIntersectingMirror) {
 				firstRay.rgb = ColorDbl(0.0, 0.0, 0.0);
 			}
 

@@ -12,7 +12,6 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "Ray.h"
-#include "Sphere.h"
 
 // 1. DONE - Fixa perfect reflector
 //		?. add material properties?? istället för att hårdkoda att sfären är en perfect reflector
@@ -38,24 +37,19 @@ const glm::vec3 cameraPos = camera.eye2;
 // Max recursion depth for indirect light
 const int maxBounces = 1;
 
-// Helps remove shadow acne (dark noise) by moving the intersection point by a small distance away from the intersecting surface
-// Can displace the shadows location by a small amount as an effect from displacing the intersection point
-// theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
-float shadowBias = 1e-4;
-
 // Forward declaration for getIndirectLight()
 ColorDbl castRay(Ray ray);
 
 // To be deprecated
-ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
+ColorDbl getLightColor(glm::vec3 intersectionPoint, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
 
 	// TODO: make sure correct falloff value
 	// Decrease intensity for incoming light when surface is far away from the lightsource 
-	float r = glm::length(ray.endPoint - light);
+	float r = glm::length(light - intersectionPoint);
 	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
 
 	// Get surface normal and compare with light source normal to decrease incoming light from an angle
-	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
+	glm::vec3 lightDirection = glm::normalize(light - intersectionPoint);
 	double angleShade = std::max(0.0f, glm::dot(lightDirection, surfaceObject.normal.direction));
 
 	return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
@@ -71,10 +65,7 @@ void findIntersectionPoint(Ray& firstRay, Triangle& intersectingTriangle) {
 		if (currentTriangle.getIntersectionPoint(firstRay, t_nearest)) {
 			intersectingTriangle = currentTriangle;
 
-			firstRay.rgb = getLightColor(firstRay, scene.lightSource, currentTriangle);
-
-			// Remove shadow acne
-			firstRay.endPoint += currentTriangle.normal.direction * shadowBias;
+			firstRay.rgb = getLightColor(firstRay.endPoint, scene.lightSource, currentTriangle);
 		}
 	}
 

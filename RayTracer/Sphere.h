@@ -21,6 +21,7 @@ class Sphere {
 		double b = glm::dot(2.0f * glm::normalize(ray.direction.direction), (ray.startPoint - this->position));
 		double c = glm::dot((ray.startPoint - this->position), (ray.startPoint - this->position)) - this->radius * this->radius;
 		double delta = (b * b / 4) - c;
+		float shadowBias = 1e-4;
 		
 		float t;
 		// Ray intersects with sphere
@@ -31,6 +32,7 @@ class Sphere {
 			if (t_nearest > t) {
 				t_nearest = t;
 				ray.endPoint = ray.startPoint + ray.direction.direction * t;
+				ray.endPoint += glm::normalize(ray.endPoint - this->position) * shadowBias;
 
 				return true;
 			}
@@ -43,6 +45,7 @@ class Sphere {
 			if (t_nearest > t) {
 				t_nearest = t;
 				ray.endPoint = ray.startPoint + ray.direction.direction * t;
+				ray.endPoint += glm::normalize(ray.endPoint - this->position) * shadowBias;
 
 				return true;
 			}

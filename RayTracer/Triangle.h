@@ -34,6 +34,8 @@ class Triangle
 		}
 
 		bool getIntersectionPoint(Ray& ray, float& t_nearest) {
+			float shadowBias = 1e-4;
+
 			// Rename triangle vertices
 			glm::vec3 p_s = ray.startPoint;
 			//glm::vec3 p_e = pixelCoord;
@@ -65,6 +67,8 @@ class Triangle
 
 						// Get calculated intersectionpoint and color for pixel from traced ray
 						ray.endPoint = ray.startPoint + ray.direction.direction * t;
+						// Fixes shadow acne
+						ray.endPoint += this->normal.direction * shadowBias;
 
 						return true;
 					}

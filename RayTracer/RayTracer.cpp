@@ -161,7 +161,42 @@ Ray getNewReflectedRay(Ray oldRay) {
 	* 6. Return the found vector!
 	*/
 
-	return oldRay;
+	// Create local system
+	glm::vec3 localSysAxisY = oldRay.intersectingTriangle.normal.direction;
+	// From incoming ray
+	glm::vec3 localSysAxisX = glm::normalize(oldRay.direction.direction - oldRay.intersectingTriangle.normal.direction * (oldRay.direction.direction, oldRay.intersectingTriangle.normal.direction));
+	glm::vec3 localSysAxisZ = glm::cross(localSysAxisX, localSysAxisY);
+
+	// Get world to local transformation matrix
+	glm::mat4 M_1 = { localSysAxisX.x, localSysAxisY.x, localSysAxisZ.x, 0.0f,
+					  localSysAxisX.y, localSysAxisY.y, localSysAxisZ.y, 0.0f,
+					  localSysAxisX.z, localSysAxisY.z, localSysAxisZ.z, 0.0f,
+					  0.0f, 0.0f, 0.0f, 1.0f };
+	glm::mat4 M_2 = { 1.0f, 0.0f, 0.0f, -oldRay.endPoint.x,
+					  0.0f, 1.0f, 0.0f, -oldRay.endPoint.y,
+					  0.0f, 0.0f, 1.0f, -oldRay.endPoint.z,
+					  0.0f, 0.0f, 0.0f, 1.0f };
+	glm::mat4 M = M_1 * M_2;
+
+	// Randomize new reflected ray direction
+	float theta = ((double)rand() / (RAND_MAX)) * M_PI / 2;
+	float phi = ((double)rand() / (RAND_MAX)) * 2 * M_PI;
+
+	// Convert randomized spherical coordinates to carteisan coordinates in the local system	
+	float x_cart = glm::cos(phi) * glm::sin(theta); // x = cos phi * sin theta
+	float y_cart = glm::sin(phi) * glm::sin(theta); // y = sin phi * sin theta
+	float z_cart = glm::cos(theta); // z = cos theta
+
+	// Convert ray coordinates to global system
+	glm::vec4 reflected_local = { x_cart, y_cart, z_cart, 1.0f };
+	glm::vec3 reflected_global = reflected_local * glm::inverse(M);
+
+	Ray reflectedRay;
+	reflectedRay.startPoint = oldRay.endPoint;
+	reflectedRay.direction = glm::normalize(reflected_global);
+	reflectedRay.depth = oldRay.depth;
+
+	return reflectedRay;
 }
 
 ColorDbl castRay(Ray ray) {
@@ -181,7 +216,7 @@ ColorDbl castRay(Ray ray) {
 	// Indirect Light (Monte carlo estimator)
 	Ray reflectedRay = getNewReflectedRay(ray);
 	ColorDbl indirectLight = castRay(reflectedRay);
-	indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
+	//indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
 
 	// Combine the two types of light into one final color for the intersection point
 	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;

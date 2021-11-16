@@ -44,6 +44,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // Can displace the shadows location by a small amount as an effect from displacing the intersection point
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
+const int MAX_DEPTH = 1;
 
 // Could be moved into triangle class as a method since only Triangle uses it. But, it should be more generic and also work for spheres.
 ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
@@ -60,7 +61,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
 }
 
-void findIntersection(Ray& ray) {
+Ray findIntersection(Ray ray) {
 	float t;
 	float t_nearest = INFINITY;
 
@@ -109,11 +110,12 @@ void findIntersection(Ray& ray) {
 		// Removes shadow acne
 		ray.endPoint += sphereNorm * shadowBias;
 	}
+	return ray;
 }
 
 ColorDbl getDirectLight(Ray ray) {
 	// Create the shadow ray
-	Ray shadowRay = Ray();
+	Ray shadowRay;
 	shadowRay.startPoint = ray.endPoint;
 	shadowRay.endPoint = scene.lightSource;
 	shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
@@ -147,22 +149,36 @@ ColorDbl getDirectLight(Ray ray) {
 }
 
 ColorDbl castRay(Ray ray) {
-	// Base case: if max depth, compute combined color and return
+	// Need to find rays endpoint before incoming direct light on intersecting point can be found
+	ray = findIntersection(ray);
 
-	findIntersection(ray);
+	// Base case: if max recursive depth, don't look for indirect light
+	if (ray.depth >= MAX_DEPTH) {
+		ColorDbl directLight = getDirectLight(ray);
+		return directLight;
+	}
 
 	/*********** Shadow Rays (direct light) *************/
-	/* When nearest color for nearest intersection is found, check if occluded by other objects in the scene i.e. no illumination from the direct light */
+	
 	ColorDbl directLight = getDirectLight(ray);
 
+	/****************************************************/
+	
+	/************* Monte carlo estimator (indirect light) ************/	
 
-	/************* Monte carlo estimator (indirect light) ************/
+	Ray newRay = ray;
+	newRay.depth++;
+	ColorDbl indirectLight = castRay(newRay);
+	indirectLight = ColorDbl(0.01, 0.0, 0.0); // temp color
 
-	// intersectingTriangle.normal
+	/*****************************************************************/
 
-	/******************************************************/
-
-	return directLight;
+	// Not correct way to combine light types, just a temp method
+	ColorDbl combinedLight;
+	combinedLight.R = directLight.R + indirectLight.R;
+	combinedLight.G = directLight.G + indirectLight.G;
+	combinedLight.B = directLight.B + indirectLight.B;
+	return combinedLight;
 }
 
 void renderPixel(int i, int j) {

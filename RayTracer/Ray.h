@@ -19,6 +19,7 @@ class Ray
 		Direction direction;
 		Triangle intersectingTriangle;
 		bool isIntersectingMirror = false;
+		int depth = 0;
 
 		// Default constructor
 		Ray() = default;

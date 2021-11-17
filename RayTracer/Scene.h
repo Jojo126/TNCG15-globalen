@@ -123,16 +123,5 @@ class Scene
 
 			std::cout << "Room created." << std::endl;
 		}
-			
-
-		/*Triangle intersectedTriangle(Ray arg) {
-			//loopa igenom varje triangel och kalla på  Triangle::rayIntersection-metod för att se om den blir intersected
-			//It then passes references to the triangle and the intersection point to the Ray arg. Lite osäker på vad de innebär
-
-			for (int z = 0; z < 24; z++) {
-				Triangle::rayIntersection(arg);
-			}
-
-		}*/
 };
 

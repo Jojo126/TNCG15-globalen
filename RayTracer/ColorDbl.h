@@ -28,6 +28,12 @@ class ColorDbl
 			this->B += inRGB.B;
 			return *this;
 		}
+		ColorDbl operator*(double inD) {
+			this->R *= inD;
+			this->G *= inD;
+			this->B *= inD;
+			return *this;
+		}
 
 		~ColorDbl() {};
 };

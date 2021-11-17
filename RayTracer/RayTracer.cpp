@@ -25,9 +25,9 @@
 // 7. KLARA - RAPPORT :DDDDDD
 
 // Specs for bitmap
-const int HEIGHT = 800;
-const int WIDTH = 800;
-double intensityImage[800][800][3];
+const int HEIGHT = 50;
+const int WIDTH = 50;
+double intensityImage[WIDTH][HEIGHT][3];
 
 // Creates an empty room
 Scene scene;
@@ -52,7 +52,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	// TODO: make sure correct falloff value
 	// Decrease intensity for incoming light when surface is far away from the lightsource 
 	float r = glm::length(ray.endPoint - light);
-	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
+	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
 
 	// Get surface normal and compare with light source normal to decrease incoming light from an angle
 	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
@@ -148,7 +148,7 @@ ColorDbl getDirectLight(Ray ray) {
 	return ray.rgb;
 }
 
-Ray getNewReflectedRay(Ray oldRay) {
+Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 	/* Outlines for finding a new reflected ray
 	* 1. Create local coordinate system
 	*  - Project incoming ray onto surfaces plane (x or y...)
@@ -182,6 +182,8 @@ Ray getNewReflectedRay(Ray oldRay) {
 	float theta = ((double)rand() / (RAND_MAX)) * M_PI / 2;
 	float phi = ((double)rand() / (RAND_MAX)) * 2 * M_PI;
 
+	cosTheta = cos(theta);
+
 	// Convert randomized spherical coordinates to carteisan coordinates in the local system	
 	float x_cart = glm::cos(phi) * glm::sin(theta); // x = cos phi * sin theta
 	float y_cart = glm::sin(phi) * glm::sin(theta); // y = sin phi * sin theta
@@ -195,18 +197,20 @@ Ray getNewReflectedRay(Ray oldRay) {
 	reflectedRay.startPoint = oldRay.endPoint;
 	reflectedRay.direction = glm::normalize(reflected_global);
 	reflectedRay.depth = oldRay.depth;
-
+	std::cout << "reflected ray dir: " << reflectedRay.direction << std::endl;
 	return reflectedRay;
 }
 
 ColorDbl castRay(Ray ray) {
+	ColorDbl accLight = ColorDbl(0.0, 0.0, 0.0);
+
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	ray = findIntersection(ray);
 
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (ray.depth >= MAX_DEPTH) {
-		ColorDbl directLight = getDirectLight(ray);
-		return directLight;
+		ColorDbl accLight = getDirectLight(ray);
+		return accLight;
 	}
 	ray.depth++;
 
@@ -214,22 +218,24 @@ ColorDbl castRay(Ray ray) {
 	ColorDbl directLight = getDirectLight(ray);
 	
 	// Indirect Light (Monte carlo estimator)
-	Ray reflectedRay = getNewReflectedRay(ray);
-	ColorDbl indirectLight = castRay(reflectedRay);
-	//indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
-
-	// Move to last step when storing pixel color?
-	// Combine the two types of light into one final color for the intersection point
-	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
-	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * ray.intersectingTriangle.rgb.R;
-	combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * ray.intersectingTriangle.rgb.G;
-	combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * ray.intersectingTriangle.rgb.B;
-	return combinedLight;
+	double cosTheta = 0;
+	Ray reflectedRay = getNewReflectedRay(ray, cosTheta);
+	accLight += castRay(reflectedRay) * cosTheta;
+	accLight += getLightColor(ray, scene.lightSource, ray.intersectingTriangle);
+	accLight += directLight;
+	std::cout << directLight << std::endl;
+	accLight.R *= ray.intersectingTriangle.rgb.R / M_PI;
+	accLight.G *= ray.intersectingTriangle.rgb.G / M_PI;
+	accLight.B *= ray.intersectingTriangle.rgb.B / M_PI;
+	//accLight = ColorDbl(0.001, 0.0, 0.0); // temp color
+	//std::cout << accLight << std::endl; // keeps getting mainly black indirect diffuse light...
+	return accLight;
 }
 
 void renderPixel(int i, int j) {
+	float delta = 2.0f / WIDTH;
 	// Get pixelcoords from pixel index in image
-	glm::vec3 pixelCoord = glm::vec3(0.0, (j - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025, (i - 401.0 + ((double)rand() / (RAND_MAX))) * 0.0025);
+	glm::vec3 pixelCoord = glm::vec3(0.0, (j - (WIDTH/2+1.0) + ((double)rand() / (RAND_MAX))) * delta, (i - (WIDTH / 2 + 1.0) + ((double)rand() / (RAND_MAX))) * delta);
 
 	// Create first ray to be casted into scene
 	Ray firstRay;
@@ -237,15 +243,15 @@ void renderPixel(int i, int j) {
 	firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 	firstRay = findIntersection(firstRay);
 	ColorDbl directLight = getDirectLight(firstRay);
-	
+	//directLight = ColorDbl(0.0, 0.0, 0.0);
 
-	ColorDbl indirectLight = ColorDbl(0.001, 0.0, 0.0); // temp color
+	ColorDbl indirectLight = castRay(firstRay);
+	//indirectLight = ColorDbl(0.0, 0.0, 0.0);
+
 	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
 	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;
 	combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay.intersectingTriangle.rgb.G;
 	combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay.intersectingTriangle.rgb.B;
-
-	//ColorDbl  finalColor = castRay(firstRay);
 
 	// Store found color of pixel in rendered image
 	intensityImage[i][j][2] = combinedLight.R * 255;
@@ -273,7 +279,7 @@ int main()
 	// Draw/store image
 	std::cout << "Rendering image..." << std::endl;
 
-	const int n_threads = 8;
+	const int n_threads = 1;
 	std::array<std::thread, n_threads> threads;
 	for (int i = 0; i < n_threads; i++) {
 		int start = i * HEIGHT / n_threads;

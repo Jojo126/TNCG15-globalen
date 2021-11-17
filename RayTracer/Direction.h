@@ -3,6 +3,7 @@ It has the three components of a direction vector x, y, z.
 */
 
 #pragma once
+#include <iostream>
 #include "Vertex.h"
 #include "glm/glm.hpp"
 
@@ -31,6 +32,11 @@ class Direction
 
 		// Multiplikation mellan vector + skalär
 		Direction operator*(float inD);
+
+		friend std::ostream& operator<<(std::ostream& os, const Direction& cd) {
+			os << '(' << cd.direction.x << ',' << cd.direction.y << ',' << cd.direction.z << ')';
+			return os;
+		}
 
 		// Kryssprodukt
 		/*Direction crossProduct(Direction inV);

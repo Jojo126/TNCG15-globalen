@@ -28,7 +28,7 @@ class Sphere {
 
 			t = -b / 2 - sqrt(delta);
 
-			if (t_nearest > t) {
+			if (t_nearest > t && t > 0) {
 				t_nearest = t;
 				ray.endPoint = ray.startPoint + ray.direction.direction * t;
 
@@ -40,7 +40,7 @@ class Sphere {
 
 			t = -b / 2;
 
-			if (t_nearest > t) {
+			if (t_nearest > t && t > 0) {
 				t_nearest = t;
 				ray.endPoint = ray.startPoint + ray.direction.direction * t;
 

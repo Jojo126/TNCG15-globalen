@@ -24,8 +24,8 @@ class Direction
 			direction.x = (v2.coords.y - v1.coords.y) * (v3.coords.z - v1.coords.z) - (v2.coords.z - v1.coords.z) * (v3.coords.y - v1.coords.y);
 			direction.y = (v2.coords.z - v1.coords.z) * (v3.coords.x - v1.coords.x) - (v2.coords.x - v1.coords.x) * (v3.coords.z - v1.coords.z);
 			direction.z = (v2.coords.x - v1.coords.x) * (v3.coords.y - v1.coords.y) - (v2.coords.y - v1.coords.y) * (v3.coords.x - v1.coords.x);
-
 			direction = glm::normalize(direction);
+			//std::cout << "Direction.x osv. = " << direction.x << "  " << direction.y << "  " << direction.z << std::endl;
 		}
 
 		~Direction() {};

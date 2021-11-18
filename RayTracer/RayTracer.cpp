@@ -187,7 +187,7 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 
 	// Convert ray coordinates to global system
 	glm::vec4 reflected_local = { x_cart, y_cart, z_cart, 1.0f };
-	glm::vec3 reflected_global = reflected_local * glm::inverse(M);
+	glm::vec3 reflected_global = glm::inverse(M) * reflected_local;
 
 	Ray reflectedRay;
 	reflectedRay.startPoint = oldRay.endPoint;

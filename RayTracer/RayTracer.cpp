@@ -52,7 +52,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	// TODO: make sure correct falloff value
 	// Decrease intensity for incoming light when surface is far away from the lightsource 
 	float r = glm::length(ray.endPoint - light);
-	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
+	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
 
 	// Get surface normal and compare with light source normal to decrease incoming light from an angle
 	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
@@ -62,31 +62,24 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 }
 
 Ray findIntersection(Ray ray) {
-	//float t;
 	float t_nearest = INFINITY;
 
 	// Loop through all triangles in scene
-	//for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 	for (int index = 0; index < scene.mTriangles.size(); index++) {
-		//Triangle currentTriangle = *it;
 		Triangle currentTriangle = scene.mTriangles[index];
-		//std::cout << "currentTriangle = " << currentTriangle.normal.direction.x << "  " << currentTriangle.normal.direction.y << "  " << currentTriangle.normal.direction.z << std::endl;
+		
 		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
-			
 			ray.isIntersectingMirror = false;
-			//std::cout << "before ray.intersect.. = " << ray.intersectingTriangle.normal.direction.x << "  " << ray.intersectingTriangle.normal.direction.y << "  " << ray.intersectingTriangle.normal.direction.z << std::endl;
 			ray.intersectingTriangle = currentTriangle;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
-			//std::cout << "after ray.intersect..= " << ray.intersectingTriangle.normal.direction.x << "  " << ray.intersectingTriangle.normal.direction.y << "  " << ray.intersectingTriangle.normal.direction.z << std::endl;
 			Ray testRay = ray;
-			//std::cout << "testRay.intersect..= " << testRay.intersectingTriangle.normal.direction.x << "  " << testRay.intersectingTriangle.normal.direction.y << "  " << testRay.intersectingTriangle.normal.direction.z << std::endl;
 			ray.rgb = getLightColor(ray, scene.lightSource, currentTriangle);
 
 			// Remove shadow acne
 			ray.endPoint += currentTriangle.normal.direction * shadowBias;
 		}
 	}
-	/**/
+
 	// Check if nearest intersection is on the sphere
 	if (scene.sphere.getIntersectionPoint(ray, t_nearest)) {
 		ray.isIntersectingMirror = true;
@@ -124,8 +117,6 @@ ColorDbl getDirectLight(Ray ray) {
 	shadowRay.startPoint = ray.endPoint;
 	shadowRay.endPoint = scene.lightSource;
 	shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
-
-	// IntersectingObject
 
 	float temp_t = INFINITY;
 	float distanceRaystartToLight = glm::length(shadowRay.endPoint - shadowRay.startPoint);
@@ -172,10 +163,6 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 	glm::vec3 localSysAxisX = glm::normalize(oldRay.direction.direction - oldRay.intersectingTriangle.normal.direction * (oldRay.direction.direction, oldRay.intersectingTriangle.normal.direction));
 	glm::vec3 localSysAxisY = glm::cross(localSysAxisX, localSysAxisZ);
 
-	/*std::cout << "X = " << localSysAxisX.x << " " << localSysAxisX.y << " " << localSysAxisX.z << std::endl;
-	std::cout << "Y = " << localSysAxisY.x << " " << localSysAxisY.y << " " << localSysAxisY.z << std::endl;
-	std::cout << "Z = " << localSysAxisZ.x << " " << localSysAxisZ.y << " " << localSysAxisZ.z << std::endl;*/
-
 	// Get world to local transformation matrix
 	glm::mat4 M_1 = { localSysAxisX.x, localSysAxisY.x, localSysAxisZ.x, 0.0f,
 					  localSysAxisX.y, localSysAxisY.y, localSysAxisZ.y, 0.0f,
@@ -186,13 +173,6 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 					  0.0f, 0.0f, 1.0f, -oldRay.endPoint.z,
 					  0.0f, 0.0f, 0.0f, 1.0f };
 	glm::mat4 M = M_1 * M_2;
-
-	
-	/*
-	std::cout << M_1[0][0] << " " << M_1[1][0] << " " << M_1[2][0] << " " << M_1[3][0] << std::endl;
-	std::cout << M_1[0][1] << " " << M_1[1][1] << " " << M_1[2][1] << " " << M_1[3][1] << std::endl;
-	std::cout << M_1[0][2] << " " << M_1[1][2] << " " << M_1[2][2] << " " << M_1[3][2] << std::endl;
-	std::cout << M_1[0][3] << " " << M_1[1][3] << " " << M_1[2][3] << " " << M_1[3][3] << std::endl;*/
 
 	// Randomize new reflected ray direction
 	float theta = ((double)rand() / (RAND_MAX)) * M_PI / 2;
@@ -207,16 +187,12 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 
 	// Convert ray coordinates to global system
 	glm::vec4 reflected_local = { x_cart, y_cart, z_cart, 1.0f };
-	//std::cout << "reflected_local = " << reflected_local.x << " " << reflected_local.y << " " << reflected_local.z << std::endl;
 	glm::vec3 reflected_global = reflected_local * glm::inverse(M);
-	//std::cout << "reflected_global = " << reflected_global.x << " " << reflected_global.y << " " << reflected_global.z << std::endl;
 
 	Ray reflectedRay;
 	reflectedRay.startPoint = oldRay.endPoint;
 	reflectedRay.direction = glm::normalize(reflected_global);
 	reflectedRay.depth = oldRay.depth;
-
-	//std::cout << "reflected ray dir: " << reflectedRay.direction << std::endl;
 
 	return reflectedRay;
 }
@@ -224,11 +200,9 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 ColorDbl castRay(Ray ray) {
 	ColorDbl accLight = ColorDbl(0.0, 0.0, 0.0);
 
-	//std::cout << "BEFORE: castRay normal = " << ray.intersectingTriangle.normal.direction.x << "  " << ray.intersectingTriangle.normal.direction.y << "  " << ray.intersectingTriangle.normal.direction.z << std::endl;
-
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	Ray newRay = findIntersection(ray);
-	//std::cout << "AFTER: castRay normal = " << newRay.intersectingTriangle.normal.direction.x << "  " << newRay.intersectingTriangle.normal.direction.y << "  " << newRay.intersectingTriangle.normal.direction.z << std::endl;
+	
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (newRay.depth >= MAX_DEPTH) {
 		ColorDbl accLight = getDirectLight(newRay);
@@ -238,7 +212,6 @@ ColorDbl castRay(Ray ray) {
 
 	// Direct Light (Shadow Rays)	
 	ColorDbl directLight = getDirectLight(newRay);
-	//std::cout << "directLight = " << directLight << std::endl;
 
 	// Indirect Light (Monte carlo estimator)
 	double cosTheta = 0;
@@ -246,12 +219,10 @@ ColorDbl castRay(Ray ray) {
 	accLight += castRay(reflectedRay) * cosTheta;
 	accLight += getLightColor(newRay, scene.lightSource, newRay.intersectingTriangle);
 	accLight += directLight;
-	//std::cout << directLight << std::endl;
 	accLight.R *= newRay.intersectingTriangle.rgb.R / M_PI;
 	accLight.G *= newRay.intersectingTriangle.rgb.G / M_PI;
 	accLight.B *= newRay.intersectingTriangle.rgb.B / M_PI;
-	//accLight = ColorDbl(0.001, 0.0, 0.0); // temp color
-	//std::cout << accLight << std::endl; // keeps getting mainly black indirect diffuse light...
+
 	return accLight;
 }
 
@@ -266,10 +237,8 @@ void renderPixel(int i, int j) {
 	firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 	firstRay = findIntersection(firstRay);
 	ColorDbl directLight = getDirectLight(firstRay);
-	//directLight = ColorDbl(0.0, 0.0, 0.0);
 
-	ColorDbl indirectLight = castRay(firstRay); // broken AF!!!!!!
-	//indirectLight = ColorDbl(0.0, 0.0, 0.0);
+	ColorDbl indirectLight = castRay(firstRay);
 
 	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
 	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;
@@ -296,13 +265,10 @@ int main()
 {
 	srand(static_cast <unsigned> (time(0))); // Init rand
 
-	// TODO: Render the scene from camera
-	//camera.render(scene);
-
 	// Draw/store image
 	std::cout << "Rendering image..." << std::endl;
 
-	const int n_threads = 1;
+	const int n_threads = 8;
 	std::array<std::thread, n_threads> threads;
 	for (int i = 0; i < n_threads; i++) {
 		int start = i * HEIGHT / n_threads;

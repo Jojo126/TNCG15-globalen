@@ -44,7 +44,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // Can displace the shadows location by a small amount as an effect from displacing the intersection point
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
-const int MAX_DEPTH = 1;
+const int MAX_DEPTH = 2;
 
 // Could be moved into triangle class as a method since only Triangle uses it. But, it should be more generic and also work for spheres.
 ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
@@ -52,7 +52,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	// TODO: make sure correct falloff value
 	// Decrease intensity for incoming light when surface is far away from the lightsource 
 	float r = glm::length(ray.endPoint - light);
-	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
+	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
 
 	// Get surface normal and compare with light source normal to decrease incoming light from an angle
 	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
@@ -228,27 +228,37 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	// Get pixelcoords from pixel index in image
-	glm::vec3 pixelCoord = glm::vec3(0.0, (j - (WIDTH/2+1.0) + ((double)rand() / (RAND_MAX))) * delta, (i - (WIDTH / 2 + 1.0) + ((double)rand() / (RAND_MAX))) * delta);
+	int sampels = 10;
 
-	// Create first ray to be casted into scene
-	Ray firstRay;
-	firstRay.startPoint = cameraPos;
-	firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
-	firstRay = findIntersection(firstRay);
-	ColorDbl directLight = getDirectLight(firstRay);
+	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
-	ColorDbl indirectLight = castRay(firstRay);
+	for (int k = 0; k < sampels; k++) {
+		// Get pixelcoords from pixel index in image
+		glm::vec3 pixelCoord = glm::vec3(0.0, (j - (WIDTH / 2 + 1.0) + ((double)rand() / (RAND_MAX))) * delta, (i - (WIDTH / 2 + 1.0) + ((double)rand() / (RAND_MAX))) * delta);
 
-	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
-	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;
-	combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay.intersectingTriangle.rgb.G;
-	combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay.intersectingTriangle.rgb.B;
+		// Create first ray to be casted into scene
+		Ray firstRay;
+		firstRay.startPoint = cameraPos;
+		firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
+		firstRay = findIntersection(firstRay);
+		ColorDbl directLight = getDirectLight(firstRay);
+
+		ColorDbl indirectLight = castRay(firstRay);
+
+		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
+		combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;
+		combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay.intersectingTriangle.rgb.G;
+		combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay.intersectingTriangle.rgb.B;
+
+		pixelColor += combinedLight;
+	}
+
+	pixelColor /= sampels;
 
 	// Store found color of pixel in rendered image
-	intensityImage[i][j][2] = combinedLight.R * 255;
-	intensityImage[i][j][1] = combinedLight.G * 255;
-	intensityImage[i][j][0] = combinedLight.B * 255;
+	intensityImage[i][j][2] = pixelColor.R * 255;
+	intensityImage[i][j][1] = pixelColor.G * 255;
+	intensityImage[i][j][0] = pixelColor.B * 255;
 }
 
 void rendersegment(int s, int e) {

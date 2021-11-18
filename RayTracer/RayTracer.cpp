@@ -72,8 +72,9 @@ Ray findIntersection(Ray ray) {
 			ray.isIntersectingMirror = false;
 			ray.intersectingTriangle = currentTriangle;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
-			Ray testRay = ray;
+			//Ray testRay = ray;
 			ray.rgb = getLightColor(ray, scene.lightSource, currentTriangle);
+			//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
 
 			// Remove shadow acne
 			ray.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -98,14 +99,35 @@ Ray findIntersection(Ray ray) {
 
 			t_nearest = INFINITY;
 			if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
+				/*reflectionRay.intersectingTriangle = currentTriangle;
+				reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);*/
+				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
+				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
+				//Ray testRay = ray;
 				reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);
+				//reflectionRay.rgb = ColorDbl(0.0, 0.0, 0.0);
+
+				// Remove shadow acne
+				reflectionRay.endPoint += currentTriangle.normal.direction * shadowBias;
+				std::cout << "BEFORE " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
+				ray = reflectionRay;
+				ray.startPoint = reflectionRay.startPoint;
+				ray.endPoint = reflectionRay.endPoint;
+				ray.direction.direction = reflectionRay.direction.direction;
+				ray.intersectingTriangle = reflectionRay.intersectingTriangle;
+				ray.rgb = reflectionRay.rgb;
+				ray.rgb = ColorDbl(0.0, 0.0, 0.0);
+				std::cout << "AFTER " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
+
 			}
 		}
-		ray.rgb = reflectionRay.rgb;
+		//ray.rgb = reflectionRay.rgb;
+		//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
+		//ray.intersectingTriangle = reflectionRay.intersectingTriangle;
 
 		// Removes shadow acne
-		ray.endPoint += sphereNorm * shadowBias;
+		//ray.endPoint += sphereNorm * shadowBias;
 	}
 	
 	return ray;
@@ -203,10 +225,12 @@ ColorDbl castRay(Ray ray) {
 
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	Ray newRay = findIntersection(ray);
+
+	std::cout << "IN CASTRAY " << newRay.endPoint.x << " " << newRay.endPoint.y << " " << newRay.endPoint.z << " " << std::endl;
 	
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (newRay.depth >= MAX_DEPTH) {
-		ColorDbl accLight = getDirectLight(newRay);
+		accLight = getDirectLight(newRay);
 		return accLight;
 	}
 	newRay.depth++;
@@ -217,19 +241,20 @@ ColorDbl castRay(Ray ray) {
 	// Indirect Light (Monte carlo estimator)
 	double cosTheta = 0;
 	Ray reflectedRay = getNewReflectedRay(newRay, cosTheta);
+
 	accLight += castRay(reflectedRay) * cosTheta;
-	accLight += getLightColor(newRay, scene.lightSource, newRay.intersectingTriangle);
-	accLight += directLight;
+	//accLight += getLightColor(newRay, scene.lightSource, newRay.intersectingTriangle);
+	accLight += directLight;/*
 	accLight.R *= newRay.intersectingTriangle.rgb.R / M_PI;
 	accLight.G *= newRay.intersectingTriangle.rgb.G / M_PI;
-	accLight.B *= newRay.intersectingTriangle.rgb.B / M_PI;
+	accLight.B *= newRay.intersectingTriangle.rgb.B / M_PI;*/
 
 	return accLight;
 }
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 10;
+	int sampels = 1;
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
@@ -241,11 +266,13 @@ void renderPixel(int i, int j) {
 		Ray firstRay;
 		firstRay.startPoint = cameraPos;
 		firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
+		Ray nextRay = firstRay;
 		firstRay = findIntersection(firstRay);
-		ColorDbl directLight = getDirectLight(firstRay);
-		//directLight = ColorDbl(0.0, 0.0, 0.0);
+		//ColorDbl directLight = getDirectLight(firstRay);
+		ColorDbl directLight = ColorDbl(0.0, 0.0, 0.0);
 
-		ColorDbl indirectLight = castRay(firstRay);
+		
+		ColorDbl indirectLight = castRay(nextRay);
 		//indirectLight = ColorDbl(0.0, 0.0, 0.0);
 		
 		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
@@ -281,7 +308,7 @@ int main()
 	// Draw/store image
 	std::cout << "Rendering image..." << std::endl;
 
-	const int n_threads = 8;
+	const int n_threads = 1;
 	std::array<std::thread, n_threads> threads;
 	for (int i = 0; i < n_threads; i++) {
 		int start = i * HEIGHT / n_threads;

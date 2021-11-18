@@ -118,7 +118,7 @@ class Scene
 			mTriangles.push_back(Triangle(mVertices.at(15), mVertices.at(17), mVertices.at(16), black, Direction(mVertices.at(15), mVertices.at(17), mVertices.at(16))));
 			
 			// Add sphere into scene
-			sphere.position = glm::vec3(4.0, -0.0, -1.0);
+			sphere.position = glm::vec3(1.0, 0.0, 0.0);
 			sphere.radius = 1.0;
 
 			std::cout << "Room created." << std::endl;

@@ -44,7 +44,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // Can displace the shadows location by a small amount as an effect from displacing the intersection point
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
-const int MAX_DEPTH = 2;
+const int MAX_DEPTH = 1;
 
 // Could be moved into triangle class as a method since only Triangle uses it. But, it should be more generic and also work for spheres.
 ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
@@ -158,10 +158,10 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 	*/
 
 	// Create local system
-	glm::vec3 localSysAxisZ = oldRay.intersectingTriangle.normal.direction; // possibly very wrong :'D
+	glm::vec3 localSysAxisZ = oldRay.intersectingTriangle.normal.direction;
 	// From incoming ray
-	glm::vec3 localSysAxisX = glm::normalize(oldRay.direction.direction - oldRay.intersectingTriangle.normal.direction * (oldRay.direction.direction, oldRay.intersectingTriangle.normal.direction));
-	glm::vec3 localSysAxisY = glm::cross(localSysAxisX, localSysAxisZ);
+	glm::vec3 localSysAxisX = glm::normalize(oldRay.direction.direction - oldRay.intersectingTriangle.normal.direction * glm::dot(oldRay.direction.direction, oldRay.intersectingTriangle.normal.direction));
+	glm::vec3 localSysAxisY = glm::normalize(glm::cross(localSysAxisX, localSysAxisZ));
 
 	// Get world to local transformation matrix
 	glm::mat4 M_1 = { localSysAxisX.x, localSysAxisY.x, localSysAxisZ.x, 0.0f,
@@ -172,12 +172,13 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 					  0.0f, 1.0f, 0.0f, -oldRay.endPoint.y,
 					  0.0f, 0.0f, 1.0f, -oldRay.endPoint.z,
 					  0.0f, 0.0f, 0.0f, 1.0f };
-	glm::mat4 M = M_1 * M_2;
+	glm::mat4 M = M_2 * M_1;
 
 	// Randomize new reflected ray direction
 	float theta = ((double)rand() / (RAND_MAX)) * M_PI / 2;
+	//theta = 0;
 	float phi = ((double)rand() / (RAND_MAX)) * 2 * M_PI;
-
+	
 	cosTheta = cos(theta);
 
 	// Convert randomized spherical coordinates to carteisan coordinates in the local system	
@@ -242,9 +243,11 @@ void renderPixel(int i, int j) {
 		firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 		firstRay = findIntersection(firstRay);
 		ColorDbl directLight = getDirectLight(firstRay);
+		//directLight = ColorDbl(0.0, 0.0, 0.0);
 
 		ColorDbl indirectLight = castRay(firstRay);
-
+		//indirectLight = ColorDbl(0.0, 0.0, 0.0);
+		
 		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
 		combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;
 		combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay.intersectingTriangle.rgb.G;

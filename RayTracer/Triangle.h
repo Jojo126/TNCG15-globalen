@@ -11,7 +11,6 @@ between a Ray and the Triangle with the Möller-Trumbore algorithm.
 #include "Vertex.h"
 #include "ColorDbl.h"
 #include "Direction.h"
-//#include "Scene.h" // creates error
 
 class Ray;
 
@@ -35,6 +34,7 @@ class Triangle
 		}
 
 		// Defined in Triangle.cpp
+		ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1);
 		bool getIntersectionPoint(Ray& ray, float& t_nearest);
 };
 

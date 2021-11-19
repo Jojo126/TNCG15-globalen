@@ -16,11 +16,11 @@
 
 
 // 1. DONE - Fixa perfect reflector
-//		?. add material properties?? istället för att hårdkoda att sfären är en perfect reflector
+//	1.1. add material properties?? istället för att hårdkoda att sfären är en perfect reflector
 // 2. DONE - hålla på med avstånd till ljuset o grejs
 // 3. DONE - shadow rays
-// 4. DONE? - lambertian
-// 5. monte carlo estimator (indirect light)
+// 4. DONE - lambertian
+// 5. DONE? - monte carlo estimator (indirect light)
 // 6. triangel-ljuskälla i taket
 // 7. KLARA - RAPPORT :DDDDDD
 
@@ -44,27 +44,26 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // Can displace the shadows location by a small amount as an effect from displacing the intersection point
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
+
 const int MAX_DEPTH = 3;
-
-// Could be moved into triangle class as a method since only Triangle uses it. But, it should be more generic and also work for spheres.
-ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
-
-	// TODO: make sure correct falloff value
-	// Decrease intensity for incoming light when surface is far away from the lightsource 
-	float r = glm::length(ray.endPoint - light);
-	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
-
-	// Get surface normal and compare with light source normal to decrease incoming light from an angle
-	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
-	double angleShade = std::max(0.0f, glm::dot(lightDirection, surfaceObject.normal.direction));
-
-	return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
-}
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
 
-	
+	// Loop through all triangles in scene
+	for (int index = 0; index < scene.mTriangles.size(); index++) {
+		Triangle currentTriangle = scene.mTriangles[index];
+
+		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
+			ray.isIntersectingMirror = false;
+			ray.intersectingTriangle = currentTriangle;
+			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
+			ray.rgb = currentTriangle.getLightColor(ray, scene.lightSource, currentTriangle);
+
+			// Remove shadow acne
+			ray.endPoint += currentTriangle.normal.direction * shadowBias;
+		}
+	}
 
 	// Check if nearest intersection is on the sphere
 	if (scene.sphere.getIntersectionPoint(ray, t_nearest)) {
@@ -84,51 +83,16 @@ Ray findIntersection(Ray ray) {
 
 			t_nearest = INFINITY;
 			if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
-				/*reflectionRay.intersectingTriangle = currentTriangle;
-				reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);*/
 				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
-				//Ray testRay = ray;
-				reflectionRay.rgb = getLightColor(reflectionRay, scene.lightSource, currentTriangle);
-				//reflectionRay.rgb = ColorDbl(0.0, 0.0, 0.0);
+				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, scene.lightSource, currentTriangle);
 
 				// Remove shadow acne
 				reflectionRay.endPoint += currentTriangle.normal.direction * shadowBias;
-				//std::cout << "BEFORE " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
-				ray = reflectionRay;
-				ray.startPoint = reflectionRay.startPoint;
-				ray.endPoint = reflectionRay.endPoint;
-				ray.direction.direction = reflectionRay.direction.direction;
-				ray.intersectingTriangle = reflectionRay.intersectingTriangle;
-				ray.rgb = reflectionRay.rgb;
-				//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
-				//std::cout << "AFTER " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
 
+				return reflectionRay;
 			}
-		}
-		//ray.rgb = reflectionRay.rgb;
-		//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
-		//ray.intersectingTriangle = reflectionRay.intersectingTriangle;
-
-		// Removes shadow acne
-		//ray.endPoint += sphereNorm * shadowBias;
-	}
-
-	// Loop through all triangles in scene
-	for (int index = 0; index < scene.mTriangles.size(); index++) {
-		Triangle currentTriangle = scene.mTriangles[index];
-
-		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
-			ray.isIntersectingMirror = false;
-			ray.intersectingTriangle = currentTriangle;
-			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
-			//Ray testRay = ray;
-			ray.rgb = getLightColor(ray, scene.lightSource, currentTriangle);
-			//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
-
-			// Remove shadow acne
-			ray.endPoint += currentTriangle.normal.direction * shadowBias;
 		}
 	}
 	
@@ -200,15 +164,14 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 
 	// Randomize new reflected ray direction
 	float theta = ((double)rand() / (RAND_MAX)) * M_PI / 2;
-	//theta = 0;
 	float phi = ((double)rand() / (RAND_MAX)) * 2 * M_PI;
 	
 	cosTheta = cos(theta);
 
 	// Convert randomized spherical coordinates to carteisan coordinates in the local system	
-	float x_cart = glm::cos(phi) * glm::sin(theta); // x = cos phi * sin theta
-	float y_cart = glm::sin(phi) * glm::sin(theta); // y = sin phi * sin theta
-	float z_cart = glm::cos(theta); // z = cos theta
+	float x_cart = cos(phi) * sin(theta); // x = cos phi * sin theta
+	float y_cart = sin(phi) * sin(theta); // y = sin phi * sin theta
+	float z_cart = cos(theta); // z = cos theta
 
 	// Convert ray coordinates to global system
 	glm::vec4 reflected_local = { x_cart, y_cart, z_cart, 1.0f };
@@ -227,8 +190,6 @@ ColorDbl castRay(Ray ray) {
 
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	Ray newRay = findIntersection(ray);
-
-	//std::cout << "IN CASTRAY " << newRay.endPoint.x << " " << newRay.endPoint.y << " " << newRay.endPoint.z << " " << std::endl;
 	
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (newRay.depth >= MAX_DEPTH) {
@@ -238,15 +199,15 @@ ColorDbl castRay(Ray ray) {
 	newRay.depth++;
 
 	// Direct Light (Shadow Rays)	
-	ColorDbl directLight = getDirectLight(newRay);
+	accLight += getDirectLight(newRay);
 
 	// Indirect Light (Monte carlo estimator)
 	double cosTheta = 0;
 	Ray reflectedRay = getNewReflectedRay(newRay, cosTheta);
 
+	// TODO: make sure correct equations for diffuse Lambertian reflector
 	accLight += castRay(reflectedRay) * cosTheta;
-	//accLight += getLightColor(newRay, scene.lightSource, newRay.intersectingTriangle);
-	accLight += directLight;/*
+	/*accLight += getDirectLight(newRay);
 	accLight.R *= newRay.intersectingTriangle.rgb.R / M_PI;
 	accLight.G *= newRay.intersectingTriangle.rgb.G / M_PI;
 	accLight.B *= newRay.intersectingTriangle.rgb.B / M_PI;*/
@@ -270,12 +231,9 @@ void renderPixel(int i, int j) {
 		firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 		Ray nextRay = firstRay;
 		firstRay = findIntersection(firstRay);
-		//ColorDbl directLight = getDirectLight(firstRay);
-		ColorDbl directLight = ColorDbl(0.0, 0.0, 0.0);
+		ColorDbl directLight = getDirectLight(firstRay);
 
-		
 		ColorDbl indirectLight = castRay(nextRay);
-		//indirectLight = ColorDbl(0.0, 0.0, 0.0);
 		
 		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
 		combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;

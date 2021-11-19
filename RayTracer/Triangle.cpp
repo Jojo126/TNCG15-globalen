@@ -1,5 +1,22 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "Triangle.h"
 #include "Ray.h"
+
+ColorDbl Triangle::getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity) {
+
+    // TODO: make sure correct falloff value
+    // Decrease intensity for incoming light when surface is far away from the lightsource 
+    float r = glm::length(ray.endPoint - light);
+    glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
+
+    // Get surface normal and compare with light source normal to decrease incoming light from an angle
+    glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
+    double angleShade = std::max(0.0f, glm::dot(lightDirection, surfaceObject.normal.direction));
+
+    return ColorDbl(surfaceObject.rgb.R * distanceShade.r * angleShade, surfaceObject.rgb.G * distanceShade.g * angleShade, surfaceObject.rgb.B * distanceShade.b * angleShade);
+}
 
 bool Triangle::getIntersectionPoint(Ray& ray, float& t_nearest) {
     // Rename triangle vertices

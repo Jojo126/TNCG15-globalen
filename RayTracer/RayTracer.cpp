@@ -110,15 +110,15 @@ Ray findIntersection(Ray ray) {
 
 				// Remove shadow acne
 				reflectionRay.endPoint += currentTriangle.normal.direction * shadowBias;
-				std::cout << "BEFORE " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
+				//std::cout << "BEFORE " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
 				ray = reflectionRay;
 				ray.startPoint = reflectionRay.startPoint;
 				ray.endPoint = reflectionRay.endPoint;
 				ray.direction.direction = reflectionRay.direction.direction;
 				ray.intersectingTriangle = reflectionRay.intersectingTriangle;
 				ray.rgb = reflectionRay.rgb;
-				ray.rgb = ColorDbl(0.0, 0.0, 0.0);
-				std::cout << "AFTER " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
+				//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
+				//std::cout << "AFTER " << ray.endPoint.x << " " << ray.endPoint.y << " " << ray.endPoint.z << " " << std::endl;
 
 			}
 		}
@@ -226,7 +226,7 @@ ColorDbl castRay(Ray ray) {
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	Ray newRay = findIntersection(ray);
 
-	std::cout << "IN CASTRAY " << newRay.endPoint.x << " " << newRay.endPoint.y << " " << newRay.endPoint.z << " " << std::endl;
+	//std::cout << "IN CASTRAY " << newRay.endPoint.x << " " << newRay.endPoint.y << " " << newRay.endPoint.z << " " << std::endl;
 	
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (newRay.depth >= MAX_DEPTH) {
@@ -254,7 +254,7 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 1;
+	int sampels = 10;
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
@@ -308,7 +308,7 @@ int main()
 	// Draw/store image
 	std::cout << "Rendering image..." << std::endl;
 
-	const int n_threads = 1;
+	const int n_threads = 8;
 	std::array<std::thread, n_threads> threads;
 	for (int i = 0; i < n_threads; i++) {
 		int start = i * HEIGHT / n_threads;

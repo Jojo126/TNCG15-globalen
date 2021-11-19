@@ -44,7 +44,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // Can displace the shadows location by a small amount as an effect from displacing the intersection point
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
-const int MAX_DEPTH = 1;
+const int MAX_DEPTH = 3;
 
 // Could be moved into triangle class as a method since only Triangle uses it. But, it should be more generic and also work for spheres.
 ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1) {
@@ -52,7 +52,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 	// TODO: make sure correct falloff value
 	// Decrease intensity for incoming light when surface is far away from the lightsource 
 	float r = glm::length(ray.endPoint - light);
-	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
+	glm::vec3 distanceShade = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * r);
 
 	// Get surface normal and compare with light source normal to decrease incoming light from an angle
 	glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
@@ -64,22 +64,7 @@ ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float l
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
 
-	// Loop through all triangles in scene
-	for (int index = 0; index < scene.mTriangles.size(); index++) {
-		Triangle currentTriangle = scene.mTriangles[index];
-		
-		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
-			ray.isIntersectingMirror = false;
-			ray.intersectingTriangle = currentTriangle;
-			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
-			//Ray testRay = ray;
-			ray.rgb = getLightColor(ray, scene.lightSource, currentTriangle);
-			//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
-
-			// Remove shadow acne
-			ray.endPoint += currentTriangle.normal.direction * shadowBias;
-		}
-	}
+	
 
 	// Check if nearest intersection is on the sphere
 	if (scene.sphere.getIntersectionPoint(ray, t_nearest)) {
@@ -128,6 +113,23 @@ Ray findIntersection(Ray ray) {
 
 		// Removes shadow acne
 		//ray.endPoint += sphereNorm * shadowBias;
+	}
+
+	// Loop through all triangles in scene
+	for (int index = 0; index < scene.mTriangles.size(); index++) {
+		Triangle currentTriangle = scene.mTriangles[index];
+
+		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
+			ray.isIntersectingMirror = false;
+			ray.intersectingTriangle = currentTriangle;
+			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
+			//Ray testRay = ray;
+			ray.rgb = getLightColor(ray, scene.lightSource, currentTriangle);
+			//ray.rgb = ColorDbl(0.0, 0.0, 0.0);
+
+			// Remove shadow acne
+			ray.endPoint += currentTriangle.normal.direction * shadowBias;
+		}
 	}
 	
 	return ray;
@@ -254,7 +256,7 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 10;
+	int sampels = 150;
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 

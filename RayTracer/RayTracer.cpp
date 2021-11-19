@@ -216,6 +216,7 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 	reflectedRay.startPoint = oldRay.endPoint;
 	reflectedRay.direction = glm::normalize(reflected_global);
 	reflectedRay.depth = oldRay.depth;
+	reflectedRay.rgb = oldRay.rgb;
 
 	return reflectedRay;
 }
@@ -230,7 +231,7 @@ ColorDbl castRay(Ray ray) {
 	
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (newRay.depth >= MAX_DEPTH) {
-		accLight = getDirectLight(newRay);
+		accLight = getDirectLight(ray);
 		return accLight;
 	}
 	newRay.depth++;

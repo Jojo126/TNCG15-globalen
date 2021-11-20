@@ -58,7 +58,7 @@ Ray findIntersection(Ray ray) {
 			ray.isIntersectingMirror = false;
 			ray.intersectingTriangle = currentTriangle;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
-			ray.rgb = currentTriangle.getLightColor(ray, scene.lightSource, currentTriangle);
+			ray.rgb = currentTriangle.getLightColor(ray, scene.lightSource);
 
 			// Remove shadow acne
 			ray.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -86,7 +86,7 @@ Ray findIntersection(Ray ray) {
 				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
-				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, scene.lightSource, currentTriangle);
+				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, scene.lightSource);
 
 				// Remove shadow acne
 				reflectionRay.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -204,13 +204,7 @@ ColorDbl castRay(Ray ray) {
 	// Indirect Light (Monte carlo estimator)
 	double cosTheta = 0;
 	Ray reflectedRay = getNewReflectedRay(newRay, cosTheta);
-
-	// TODO: make sure correct equations for diffuse Lambertian reflector
 	accLight += castRay(reflectedRay) * cosTheta;
-	/*accLight += getDirectLight(newRay);
-	accLight.R *= newRay.intersectingTriangle.rgb.R / M_PI;
-	accLight.G *= newRay.intersectingTriangle.rgb.G / M_PI;
-	accLight.B *= newRay.intersectingTriangle.rgb.B / M_PI;*/
 
 	return accLight;
 }
@@ -242,7 +236,6 @@ void renderPixel(int i, int j) {
 
 		pixelColor += combinedLight;
 	}
-
 	pixelColor /= sampels;
 
 	// Store found color of pixel in rendered image

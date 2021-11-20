@@ -34,7 +34,7 @@ class Triangle
 		}
 
 		// Defined in Triangle.cpp
-		ColorDbl getLightColor(Ray ray, glm::vec3 light, Triangle surfaceObject, float lightIntensity = 1);
+		ColorDbl getLightColor(Ray ray, glm::vec3 light, float lightIntensity = 1);
 		bool getIntersectionPoint(Ray& ray, float& t_nearest);
 };
 

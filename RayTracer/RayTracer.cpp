@@ -29,6 +29,8 @@ const int HEIGHT = 800;
 const int WIDTH = 800;
 double intensityImage[WIDTH][HEIGHT][3];
 
+bool usePointLight = false;
+
 // Creates an empty room
 Scene scene;
 
@@ -45,7 +47,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 3;
+const int MAX_DEPTH = 1;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -58,6 +60,13 @@ Ray findIntersection(Ray ray) {
 			ray.isIntersectingMirror = false;
 			ray.intersectingTriangle = currentTriangle;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
+
+			// Intersecting a light source
+			if (currentTriangle.materialType == 1) {
+				ray.rgb = ColorDbl(1.0, 1.0, 1.0);
+				return ray;
+			}
+			
 			ray.rgb = currentTriangle.getLightColor(ray, scene.lightSource);
 
 			// Remove shadow acne
@@ -86,6 +95,13 @@ Ray findIntersection(Ray ray) {
 				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
+
+				// Intersecting a light source
+				if (currentTriangle.materialType == 1) {
+					ray.rgb = ColorDbl(1.0, 1.0, 1.0);
+					return ray;
+				}
+
 				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, scene.lightSource);
 
 				// Remove shadow acne
@@ -103,7 +119,15 @@ ColorDbl getDirectLight(Ray ray) {
 	// Create the shadow ray
 	Ray shadowRay;
 	shadowRay.startPoint = ray.endPoint;
-	shadowRay.endPoint = scene.lightSource;
+	if (usePointLight) {
+		shadowRay.endPoint = scene.lightSource;
+	}
+	else {
+		// get random coord in light , x []
+		// set endpoint
+		shadowRay.endPoint = glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99);
+	}
+	
 	shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
 
 	float temp_t = INFINITY;
@@ -190,7 +214,10 @@ ColorDbl castRay(Ray ray) {
 
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	Ray newRay = findIntersection(ray);
-	
+	if (newRay.intersectingTriangle.materialType == 1) {
+		return newRay.rgb;
+	}
+
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (newRay.depth >= MAX_DEPTH) {
 		accLight = getDirectLight(newRay);
@@ -211,7 +238,7 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 150;
+	int sampels = 50;
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
@@ -225,8 +252,19 @@ void renderPixel(int i, int j) {
 		firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 		Ray nextRay = firstRay;
 		firstRay = findIntersection(firstRay);
-		ColorDbl directLight = getDirectLight(firstRay);
 
+		// If hit light
+		
+		if (firstRay.intersectingTriangle.materialType == 1) {
+			// Store found color of pixel in rendered image
+			intensityImage[i][j][2] = 1.0 * 255;
+			intensityImage[i][j][1] = 1.0 * 255;
+			intensityImage[i][j][0] = 1.0 * 255;	
+
+			return;
+		}
+
+		ColorDbl directLight = getDirectLight(firstRay);
 		ColorDbl indirectLight = castRay(nextRay);
 		
 		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;

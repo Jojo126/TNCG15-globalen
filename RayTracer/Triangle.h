@@ -20,12 +20,15 @@ class Triangle
 		ColorDbl rgb;
 		Direction normal;
 		Vertex v1, v2, v3;
-		const int material = 0; // default Lambertian (currently not implemented)
+		
+		// Diffus Lambertian = 0;
+		// Light = 1
+		int materialType;
 
 		Triangle() = default;
 		
-		Triangle(Vertex v1, Vertex v2, Vertex v3, ColorDbl rgb, Direction normal) 
-			: v1{ v1 }, v2{ v2 }, v3{ v3 }, rgb{ rgb }, normal{ normal } {}
+		Triangle(Vertex v1, Vertex v2, Vertex v3, ColorDbl rgb, Direction normal, int materialType = 0)
+			: v1{ v1 }, v2{ v2 }, v3{ v3 }, rgb{ rgb }, normal{ normal }, materialType{ materialType } {}
 		
 		~Triangle() {};
 

@@ -5,7 +5,7 @@
 #include "Ray.h"
 
 ColorDbl Triangle::getLightColor(Ray ray, glm::vec3 light, float lightIntensity) {
-
+    lightIntensity = 1;
     // Decrease intensity for incoming light when surface is far away from the lightsource 
     float r = glm::length(ray.endPoint - light);
     // incidentLightEnergy = lightIntensity * lightColor / (4 * PI * r^2), r = distance between the lightPos and the intersectionPoint

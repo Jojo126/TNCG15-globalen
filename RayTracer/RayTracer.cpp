@@ -47,7 +47,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 1;
+const int MAX_DEPTH = 0;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -59,15 +59,16 @@ Ray findIntersection(Ray ray) {
 		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
 			ray.isIntersectingMirror = false;
 			ray.intersectingTriangle = currentTriangle;
+			ray.intersectingTriangle.materialType = currentTriangle.materialType;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 			// Intersecting a light source
 			if (currentTriangle.materialType == 1) {
 				ray.rgb = ColorDbl(1.0, 1.0, 1.0);
-				return ray;
+				return ray; // CAUSES PROBLEMS
 			}
 			
-			ray.rgb = currentTriangle.getLightColor(ray, scene.lightSource);
+			ray.rgb = currentTriangle.getLightColor(ray, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99));
 
 			// Remove shadow acne
 			ray.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -78,7 +79,7 @@ Ray findIntersection(Ray ray) {
 	if (scene.sphere.getIntersectionPoint(ray, t_nearest)) {
 		ray.isIntersectingMirror = true;
 		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - scene.sphere.position);
-		glm::vec3 lightDirection = glm::normalize(scene.lightSource - ray.endPoint);
+		glm::vec3 lightDirection = glm::normalize(glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99) - ray.endPoint);
 
 		 // Create a reflected ray
 		Ray reflectionRay;
@@ -102,7 +103,7 @@ Ray findIntersection(Ray ray) {
 					return ray;
 				}
 
-				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, scene.lightSource);
+				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99));
 
 				// Remove shadow acne
 				reflectionRay.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -214,8 +215,10 @@ ColorDbl castRay(Ray ray) {
 
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	Ray newRay = findIntersection(ray);
+
+	// Intersected light
 	if (newRay.intersectingTriangle.materialType == 1) {
-		return newRay.rgb;
+		return ColorDbl(1.0, 1.0, 1.0);
 	}
 
 	// Base case: If reached max recursive depth, don't look for indirect light
@@ -238,7 +241,11 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 50;
+	int sampels = 10;
+
+	//if (!(i == 700 && j == 400)) {
+	//	return;
+	//}
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
@@ -251,35 +258,37 @@ void renderPixel(int i, int j) {
 		firstRay.startPoint = cameraPos;
 		firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
 		Ray nextRay = firstRay;
-		firstRay = findIntersection(firstRay);
+		Ray firstRay2 = findIntersection(firstRay);
+
+		//std::cout << "mat = " << firstRay2.intersectingTriangle.materialType << std::endl;
 
 		// If hit light
-		
-		if (firstRay.intersectingTriangle.materialType == 1) {
+		if (firstRay2.intersectingTriangle.materialType == 1) {
 			// Store found color of pixel in rendered image
-			intensityImage[i][j][2] = 1.0 * 255;
-			intensityImage[i][j][1] = 1.0 * 255;
-			intensityImage[i][j][0] = 1.0 * 255;	
+			//std::cout << "awdawd";
+			pixelColor.R += 0.0;
+			pixelColor.G += 0.0;
+			pixelColor.B += 0.0;
 
-			return;
+			continue;
 		}
 
 		ColorDbl directLight = getDirectLight(firstRay);
 		ColorDbl indirectLight = castRay(nextRay);
 		
 		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
-		combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay.intersectingTriangle.rgb.R;
-		combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay.intersectingTriangle.rgb.G;
-		combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay.intersectingTriangle.rgb.B;
+		combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay2.intersectingTriangle.rgb.R;
+		combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay2.intersectingTriangle.rgb.G;
+		combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay2.intersectingTriangle.rgb.B;
 
 		pixelColor += combinedLight;
 	}
 	pixelColor /= sampels;
 
 	// Store found color of pixel in rendered image
-	intensityImage[i][j][2] = pixelColor.R * 255;
-	intensityImage[i][j][1] = pixelColor.G * 255;
-	intensityImage[i][j][0] = pixelColor.B * 255;
+	intensityImage[i][j][2] = pixelColor.R;
+	intensityImage[i][j][1] = pixelColor.G;
+	intensityImage[i][j][0] = pixelColor.B;
 }
 
 void rendersegment(int s, int e) {
@@ -290,6 +299,7 @@ void rendersegment(int s, int e) {
 			renderPixel(i, j);
 		}
 	}
+	std::cout << "a thread is done" << std::endl;
 }
 
 int main()
@@ -323,16 +333,16 @@ int main()
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
 				if (intensityImage[i][j][index] > i_max)
-					i_max = intensityImage[i][j][index];
+					i_max = sqrt(intensityImage[i][j][index]);
 			}	
 		}
 	}
-	
+
 	// Convert pixel values into RGB and save in bitmap-file
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
-				image[i][j][index] = intensityImage[i][j][index] * 255.99/i_max;
+				image[i][j][index] = sqrt(intensityImage[i][j][index]) * 255.99/i_max;
 			}
 		}
 	}

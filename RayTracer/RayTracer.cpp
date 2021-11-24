@@ -47,7 +47,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 0;
+const int MAX_DEPTH = 1;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -65,10 +65,11 @@ Ray findIntersection(Ray ray) {
 			// Intersecting a light source
 			if (currentTriangle.materialType == 1) {
 				ray.rgb = ColorDbl(1.0, 1.0, 1.0);
-				return ray; // CAUSES PROBLEMS
+				//return ray; // CAUSES PROBLEMS
 			}
-			
-			ray.rgb = currentTriangle.getLightColor(ray, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99));
+			else {
+				ray.rgb = currentTriangle.getLightColor(ray, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5));
+			}
 
 			// Remove shadow acne
 			ray.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -79,7 +80,7 @@ Ray findIntersection(Ray ray) {
 	if (scene.sphere.getIntersectionPoint(ray, t_nearest)) {
 		ray.isIntersectingMirror = true;
 		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - scene.sphere.position);
-		glm::vec3 lightDirection = glm::normalize(glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99) - ray.endPoint);
+		glm::vec3 lightDirection = glm::normalize(glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5) - ray.endPoint);
 
 		 // Create a reflected ray
 		Ray reflectionRay;
@@ -93,24 +94,28 @@ Ray findIntersection(Ray ray) {
 
 			t_nearest = INFINITY;
 			if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
+
 				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 				// Intersecting a light source
 				if (currentTriangle.materialType == 1) {
-					ray.rgb = ColorDbl(1.0, 1.0, 1.0);
-					return ray;
+					//float r = glm::length(ray.endPoint - glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5));
+					reflectionRay.rgb = ColorDbl(1.0, 1.0, 1.0);
+					//return ray;
 				}
-
-				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99));
+				else {
+					reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5));
+				}
 
 				// Remove shadow acne
 				reflectionRay.endPoint += currentTriangle.normal.direction * shadowBias;
 
-				return reflectionRay;
+				//return reflectionRay;
 			}
 		}
+		return reflectionRay;
 	}
 	
 	return ray;
@@ -126,7 +131,8 @@ ColorDbl getDirectLight(Ray ray) {
 	else {
 		// get random coord in light , x []
 		// set endpoint
-		shadowRay.endPoint = glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99);
+		shadowRay.endPoint = glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5);
+		//shadowRay.endPoint = glm::vec3(6.0, 0, 4.5);
 	}
 	
 	shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
@@ -140,8 +146,10 @@ ColorDbl getDirectLight(Ray ray) {
 		Triangle currentTriangle = *it;
 
 		if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
-			isOccluded = true;
-			break;
+			if (currentTriangle.materialType != 1) {
+				isOccluded = true;
+				break;
+			}
 		}
 	}
 	// Check if sphere is occluding
@@ -252,6 +260,7 @@ void renderPixel(int i, int j) {
 	for (int k = 0; k < sampels; k++) {
 		// Get pixelcoords from pixel index in image
 		glm::vec3 pixelCoord = glm::vec3(0.0, (j - (WIDTH / 2 + 1.0) + ((double)rand() / (RAND_MAX))) * delta, (i - (WIDTH / 2 + 1.0) + ((double)rand() / (RAND_MAX))) * delta);
+		//glm::vec3 pixelCoord = glm::vec3(0.0, (j - (WIDTH / 2 + 1.0) + 0.5) * delta, (i - (WIDTH / 2 + 1.0) + 0.5) * delta);
 
 		// Create first ray to be casted into scene
 		Ray firstRay;
@@ -266,15 +275,15 @@ void renderPixel(int i, int j) {
 		if (firstRay2.intersectingTriangle.materialType == 1) {
 			// Store found color of pixel in rendered image
 			//std::cout << "awdawd";
-			pixelColor.R += 0.0;
-			pixelColor.G += 0.0;
-			pixelColor.B += 0.0;
+			pixelColor.R += 1.0;
+			pixelColor.G += 1.0;
+			pixelColor.B += 1.0;
 
 			continue;
 		}
 
-		ColorDbl directLight = getDirectLight(firstRay);
-		ColorDbl indirectLight = castRay(nextRay);
+		ColorDbl directLight = ColorDbl(0.0, 0.0, 0.0); //getDirectLight(firstRay2);
+		ColorDbl indirectLight = castRay(nextRay); 
 		
 		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
 		combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay2.intersectingTriangle.rgb.R;
@@ -333,7 +342,7 @@ int main()
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
 				if (intensityImage[i][j][index] > i_max)
-					i_max = sqrt(intensityImage[i][j][index]);
+					i_max = sqrt(sqrt(intensityImage[i][j][index])); // Sqrt!
 			}	
 		}
 	}
@@ -342,7 +351,7 @@ int main()
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
-				image[i][j][index] = sqrt(intensityImage[i][j][index]) * 255.99/i_max;
+				image[i][j][index] = sqrt(sqrt(intensityImage[i][j][index])) * 255.99/i_max;  // Sqrt!
 			}
 		}
 	}

@@ -5,18 +5,19 @@
 #include "Ray.h"
 
 ColorDbl Triangle::getLightColor(Ray ray, glm::vec3 light, float lightIntensity) {
-    lightIntensity = 1;
+    
+    //lightIntensity = 1;
+
     // Decrease intensity for incoming light when surface is far away from the lightsource 
     float r = glm::length(ray.endPoint - light);
     // incidentLightEnergy = lightIntensity * lightColor / (4 * PI * r^2), r = distance between the lightPos and the intersectionPoint
-    glm::vec3 falloff = glm::vec3(1.0, 1.0, 1.0) * lightIntensity / (4 * float(M_PI) * sqrt(r));
+    float falloff = 1.0 * lightIntensity / (r*r); //4 * float(M_PI) * 
 
     // Get surface normal and compare with light source normal to decrease incoming light from depending on the angle
     glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
     double cosTheta = std::max(0.0f, glm::dot(lightDirection, normal.direction));
-
     // Diffuse surface color = surfaceAlbedo / PI * incidentLightEnergy * cos(theta)
-    return ColorDbl(rgb.R / M_PI * falloff.r * cosTheta, rgb.G / M_PI * falloff.g * cosTheta, rgb.B / M_PI * falloff.b * cosTheta);
+    return ColorDbl(rgb.R / M_PI * falloff * cosTheta, rgb.G / M_PI * falloff * cosTheta, rgb.B / M_PI * falloff * cosTheta);
 }
 
 bool Triangle::getIntersectionPoint(Ray& ray, float& t_nearest) {

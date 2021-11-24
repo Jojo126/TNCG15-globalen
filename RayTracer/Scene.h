@@ -69,10 +69,10 @@ class Scene
 			mVertices.push_back(Vertex(10.0, 2.0, -3.0));
 
 			// Area light
-			mVertices.push_back(Vertex(7.0, 1.0, 4.99)); //26
-			mVertices.push_back(Vertex(5.0, 1.0, 4.99));
-			mVertices.push_back(Vertex(5.0, -1.0, 4.99));
-			mVertices.push_back(Vertex(7.0, -1.0, 4.99));
+			mVertices.push_back(Vertex(7.0, 1.0, 4.5)); //26
+			mVertices.push_back(Vertex(5.0, 1.0, 4.5));
+			mVertices.push_back(Vertex(5.0, -1.0, 4.5));
+			mVertices.push_back(Vertex(7.0, -1.0, 4.5));
 
 			// Square (debugging)
 			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(25), mVertices.at(23), green, Direction(mVertices.at(19), mVertices.at(23), mVertices.at(25))));

@@ -47,7 +47,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 0;
+const int MAX_DEPTH = 1;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -59,6 +59,7 @@ Ray findIntersection(Ray ray) {
 		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
 			ray.isIntersectingMirror = false;
 			ray.intersectingTriangle = currentTriangle;
+			ray.intersectingTriangle.rgb = currentTriangle.rgb;
 			ray.intersectingTriangle.materialType = currentTriangle.materialType;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
@@ -97,6 +98,7 @@ Ray findIntersection(Ray ray) {
 
 				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
+				reflectionRay.intersectingTriangle.rgb = currentTriangle.rgb;
 				reflectionRay.intersectingTriangle.materialType = currentTriangle.materialType;
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
@@ -199,7 +201,8 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 	// Randomize new reflected ray direction
 	float theta = ((double)rand() / (RAND_MAX)) * M_PI / 2;
 	float phi = ((double)rand() / (RAND_MAX)) * 2 * M_PI;
-	
+	//theta = 0;
+
 	cosTheta = cos(theta);
 
 	// Convert randomized spherical coordinates to carteisan coordinates in the local system	
@@ -220,42 +223,52 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 }
 
 ColorDbl castRay(Ray ray) {
-	ColorDbl accLight = ColorDbl(0.0, 0.0, 0.0);
+	//ColorDbl accLight = ColorDbl(0.0, 0.0, 0.0);
 
 	// Need to find rays endpoint before incoming direct light on intersecting point can be found
 	Ray newRay = findIntersection(ray);
 
+	// newray.rgb = AVSTÅND * VINKEL
+
 	// Intersected light
 	if (newRay.intersectingTriangle.materialType == 1) {
 		float r = glm::length(newRay.endPoint - newRay.startPoint);// glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5));
-		return ColorDbl(1.0, 1.0, 1.0) / (r*r);
+		
+		return ColorDbl(1.0, 1.0, 1.0) / (4 * M_PI * r * r);
+		//return ColorDbl(0.0, 0.0, 0.0);
 	}
 
 	// Base case: If reached max recursive depth, don't look for indirect light
 	if (newRay.depth >= MAX_DEPTH) {
-		accLight = getDirectLight(newRay);
+		ColorDbl accLight = getDirectLight(newRay);
+		accLight.R *= newRay.intersectingTriangle.rgb.R;
+		accLight.G *= newRay.intersectingTriangle.rgb.G;
+		accLight.B *= newRay.intersectingTriangle.rgb.B;
+
 		return accLight;
 	}
 	newRay.depth++;
 
 	// Direct Light (Shadow Rays)	
-	accLight += getDirectLight(newRay);
+	//accLight += getDirectLight(newRay);
 
 	// Indirect Light (Monte carlo estimator)
 	double cosTheta = 0;
 	Ray reflectedRay = getNewReflectedRay(newRay, cosTheta);
-	accLight += castRay(reflectedRay) * cosTheta;
 
-	return accLight;
+	ColorDbl indirectLight = castRay(reflectedRay) * cosTheta;
+	ColorDbl directLight = getDirectLight(newRay);
+	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
+	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * newRay.intersectingTriangle.rgb.R;
+	combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * newRay.intersectingTriangle.rgb.G;
+	combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * newRay.intersectingTriangle.rgb.B;
+
+	return combinedLight;
 }
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
 	int sampels = 10;
-
-	//if (!(i == 700 && j == 400)) {
-	//	return;
-	//}
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
@@ -268,7 +281,6 @@ void renderPixel(int i, int j) {
 		Ray firstRay;
 		firstRay.startPoint = cameraPos;
 		firstRay.direction = glm::normalize(pixelCoord - firstRay.startPoint);
-		Ray nextRay = firstRay;
 		Ray firstRay2 = findIntersection(firstRay);
 
 		//std::cout << "mat = " << firstRay2.intersectingTriangle.materialType << std::endl;
@@ -277,24 +289,26 @@ void renderPixel(int i, int j) {
 		if (firstRay2.intersectingTriangle.materialType == 1) {
 			// Store found color of pixel in rendered image
 			//std::cout << "awdawd";
-			pixelColor.R += 1.0;
-			pixelColor.G += 1.0;
-			pixelColor.B += 1.0;
+			//float r = glm::length( - firstRay2.endPoint);
+			//std::cout << "length : " << r << std::endl;
+			pixelColor.R += 1.0;// / (4 * M_PI * r * r);
+			pixelColor.G += 1.0;// / (4 * M_PI * r * r);
+			pixelColor.B += 1.0;// / (4 * M_PI * r * r);
 
 			continue;
 		}
 
-		ColorDbl directLight = getDirectLight(firstRay2);
-		ColorDbl indirectLight = castRay(nextRay); 
+		//ColorDbl directLight = getDirectLight(firstRay2);
+		ColorDbl indirectLight = castRay(firstRay2);
 		
-		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
-		combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay2.intersectingTriangle.rgb.R;
-		combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay2.intersectingTriangle.rgb.G;
-		combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay2.intersectingTriangle.rgb.B;
+		//ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
+		//combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * firstRay2.intersectingTriangle.rgb.R;
+		//combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * firstRay2.intersectingTriangle.rgb.G;
+		//combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * firstRay2.intersectingTriangle.rgb.B;
 
-		pixelColor += combinedLight;
+		pixelColor += indirectLight;
 	}
-	pixelColor /= sampels;
+	//pixelColor /= sampels;
 
 	// Store found color of pixel in rendered image
 	intensityImage[i][j][2] = pixelColor.R;
@@ -344,7 +358,7 @@ int main()
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
 				if (intensityImage[i][j][index] > i_max)
-					i_max = sqrt(sqrt(intensityImage[i][j][index])); // Sqrt!
+					i_max = intensityImage[i][j][index]; // Sqrt!
 			}	
 		}
 	}
@@ -355,7 +369,7 @@ int main()
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
-				image[i][j][index] = sqrt(sqrt(intensityImage[i][j][index])) * 255.99/i_max;  // Sqrt!
+				image[i][j][index] = sqrt(sqrt(intensityImage[i][j][index] / i_max)) * 255.99;  // Sqrt!
 			}
 		}
 	}

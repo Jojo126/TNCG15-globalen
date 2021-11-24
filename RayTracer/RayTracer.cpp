@@ -47,7 +47,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 1;
+const int MAX_DEPTH = 0;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -97,6 +97,7 @@ Ray findIntersection(Ray ray) {
 
 				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
+				reflectionRay.intersectingTriangle.materialType = currentTriangle.materialType;
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 				// Intersecting a light source
@@ -226,7 +227,8 @@ ColorDbl castRay(Ray ray) {
 
 	// Intersected light
 	if (newRay.intersectingTriangle.materialType == 1) {
-		return ColorDbl(1.0, 1.0, 1.0);
+		float r = glm::length(newRay.endPoint - newRay.startPoint);// glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5));
+		return ColorDbl(1.0, 1.0, 1.0) / (r*r);
 	}
 
 	// Base case: If reached max recursive depth, don't look for indirect light
@@ -282,7 +284,7 @@ void renderPixel(int i, int j) {
 			continue;
 		}
 
-		ColorDbl directLight = ColorDbl(0.0, 0.0, 0.0); //getDirectLight(firstRay2);
+		ColorDbl directLight = getDirectLight(firstRay2);
 		ColorDbl indirectLight = castRay(nextRay); 
 		
 		ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
@@ -346,6 +348,8 @@ int main()
 			}	
 		}
 	}
+
+	std::cout << i_max << std::endl;
 
 	// Convert pixel values into RGB and save in bitmap-file
 	for (i = 0; i < WIDTH; i++) {

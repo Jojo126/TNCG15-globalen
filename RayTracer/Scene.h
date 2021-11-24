@@ -97,7 +97,7 @@ class Scene
 			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(8), mVertices.at(10), white, Direction(mVertices.at(12), mVertices.at(8), mVertices.at(10))));
 			
 			// Area light
-			mTriangles.push_back(Triangle(mVertices.at(26), mVertices.at(28), mVertices.at(27), red, Direction(mVertices.at(26), mVertices.at(28), mVertices.at(27)), 1));
+			mTriangles.push_back(Triangle(mVertices.at(26), mVertices.at(28), mVertices.at(27), white, Direction(mVertices.at(26), mVertices.at(28), mVertices.at(27)), 1));
 			mTriangles.push_back(Triangle(mVertices.at(26), mVertices.at(29), mVertices.at(28), red, Direction(mVertices.at(26), mVertices.at(29), mVertices.at(28)), 1));
 
 

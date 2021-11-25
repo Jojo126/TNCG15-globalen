@@ -47,7 +47,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 1;
+const int MAX_DEPTH = 2;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -201,9 +201,9 @@ Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
 	// Randomize new reflected ray direction
 	float theta = ((double)rand() / (RAND_MAX)) * M_PI / 2;
 	float phi = ((double)rand() / (RAND_MAX)) * 2 * M_PI;
-	//theta = 0;
+	//theta = M_PI / 2 - 0.1;
 
-	cosTheta = cos(theta);
+	cosTheta = 1;// cos(theta);
 
 	// Convert randomized spherical coordinates to carteisan coordinates in the local system	
 	float x_cart = cos(phi) * sin(theta); // x = cos phi * sin theta
@@ -234,8 +234,8 @@ ColorDbl castRay(Ray ray) {
 	if (newRay.intersectingTriangle.materialType == 1) {
 		float r = glm::length(newRay.endPoint - newRay.startPoint);// glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.5));
 		
-		return ColorDbl(1.0, 1.0, 1.0) / (4 * M_PI * r * r);
-		//return ColorDbl(0.0, 0.0, 0.0);
+		//return ColorDbl(1.0, 1.0, 1.0) / (4 * M_PI * r * r);
+		return ColorDbl(0.0, 0.0, 0.0);
 	}
 
 	// Base case: If reached max recursive depth, don't look for indirect light
@@ -249,6 +249,8 @@ ColorDbl castRay(Ray ray) {
 	}
 	newRay.depth++;
 
+	// tänk eventuellt på att lägga till 1/avstånd eller så på indirekt ljus
+
 	// Direct Light (Shadow Rays)	
 	//accLight += getDirectLight(newRay);
 
@@ -257,11 +259,12 @@ ColorDbl castRay(Ray ray) {
 	Ray reflectedRay = getNewReflectedRay(newRay, cosTheta);
 
 	ColorDbl indirectLight = castRay(reflectedRay) * cosTheta;
+
 	ColorDbl directLight = getDirectLight(newRay);
 	ColorDbl combinedLight; // = (directDiffuse / M_PI + 2 * indirectDiffuse) * object->albedo;
-	combinedLight.R = (directLight.R / M_PI + 2 * indirectLight.R) * newRay.intersectingTriangle.rgb.R;
-	combinedLight.G = (directLight.G / M_PI + 2 * indirectLight.G) * newRay.intersectingTriangle.rgb.G;
-	combinedLight.B = (directLight.B / M_PI + 2 * indirectLight.B) * newRay.intersectingTriangle.rgb.B;
+	combinedLight.R = (0 * directLight.R / M_PI + 2 * indirectLight.R);// *newRay.intersectingTriangle.rgb.R;
+	combinedLight.G = (0 * directLight.G / M_PI + 2 * indirectLight.G);// *newRay.intersectingTriangle.rgb.G;
+	combinedLight.B = (0 * directLight.B / M_PI + 2 * indirectLight.B);// *newRay.intersectingTriangle.rgb.B;
 
 	return combinedLight;
 }
@@ -308,7 +311,7 @@ void renderPixel(int i, int j) {
 
 		pixelColor += indirectLight;
 	}
-	//pixelColor /= sampels;
+	pixelColor /= sampels;
 
 	// Store found color of pixel in rendered image
 	intensityImage[i][j][2] = pixelColor.R;

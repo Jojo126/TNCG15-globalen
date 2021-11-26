@@ -60,10 +60,10 @@ Ray findIntersection(Ray ray) {
 			ray.isIntersectingMirror = false;
 			ray.intersectingTriangle = currentTriangle;
 			ray.intersectingTriangle.rgb = currentTriangle.rgb;
+			ray.intersectingTriangle.materialType = currentTriangle.materialType;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 			// Intersecting a light source
-			
 			if (currentTriangle.materialType == 1 && ray.depth != 0) {
 				ray.rgb = ColorDbl(1.0, 1.0, 1.0);
 				return ray;
@@ -105,6 +105,8 @@ Ray findIntersection(Ray ray) {
 			if (currentTriangle.getIntersectionPoint(reflectionRay, t_nearest)) {
 				reflectionRay.isIntersectingMirror = false;
 				reflectionRay.intersectingTriangle = currentTriangle;
+				reflectionRay.intersectingTriangle.rgb = currentTriangle.rgb;
+				reflectionRay.intersectingTriangle.materialType = currentTriangle.materialType;
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 				// Intersecting a light source
@@ -164,7 +166,7 @@ ColorDbl getDirectLight(Ray ray) {
 		}
 	}
 	else {
-		int nShadowRays = 10;
+		int nShadowRays = 20;
 		ColorDbl directLight = ColorDbl(0, 0, 0);
 		// get random coord in light , x []
 		// set endpoint

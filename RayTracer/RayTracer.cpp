@@ -308,14 +308,14 @@ void renderPixel(int i, int j) {
 
 		// If hit light
 		
-		/*if (firstRay.intersectingTriangle.materialType == 1) {
+		if (firstRay.intersectingTriangle.materialType == 1 && !usePointLight) {
 			// Store found color of pixel in rendered image
 			intensityImage[i][j][2] = 1.0 * 255;
 			intensityImage[i][j][1] = 1.0 * 255;
 			intensityImage[i][j][0] = 1.0 * 255;	
 
 			return;
-		}*/
+		}
 
 		ColorDbl directLight = getDirectLight(firstRay);
 		ColorDbl indirectLight = castRay(nextRay);

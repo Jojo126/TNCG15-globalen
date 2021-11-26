@@ -59,15 +59,21 @@ Ray findIntersection(Ray ray) {
 		if (currentTriangle.getIntersectionPoint(ray, t_nearest)) {
 			ray.isIntersectingMirror = false;
 			ray.intersectingTriangle = currentTriangle;
+			ray.intersectingTriangle.rgb = currentTriangle.rgb;
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 			// Intersecting a light source
-			if (currentTriangle.materialType == 1) {
+			
+			if (currentTriangle.materialType == 1 && ray.depth != 0) {
 				ray.rgb = ColorDbl(1.0, 1.0, 1.0);
 				return ray;
 			}
-			
-			ray.rgb = currentTriangle.getLightColor(ray, scene.lightSource);
+			if (usePointLight) {
+				ray.rgb = currentTriangle.getLightColor(ray, scene.lightSource);
+			}
+			else {
+				ray.rgb = currentTriangle.getLightColor(ray, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99));
+			}
 
 			// Remove shadow acne
 			ray.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -78,7 +84,12 @@ Ray findIntersection(Ray ray) {
 	if (scene.sphere.getIntersectionPoint(ray, t_nearest)) {
 		ray.isIntersectingMirror = true;
 		glm::vec3 sphereNorm = glm::normalize(ray.endPoint - scene.sphere.position);
-		glm::vec3 lightDirection = glm::normalize(scene.lightSource - ray.endPoint);
+		if (usePointLight) {
+			glm::vec3 lightDirection = glm::normalize(scene.lightSource - ray.endPoint);
+		}
+		else {
+			glm::vec3 lightDirection = glm::normalize(glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99) - ray.endPoint);
+		}
 
 		 // Create a reflected ray
 		Ray reflectionRay;
@@ -97,12 +108,17 @@ Ray findIntersection(Ray ray) {
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 				// Intersecting a light source
-				if (currentTriangle.materialType == 1) {
+				if (currentTriangle.materialType == 1 && ray.depth != 0) {
 					ray.rgb = ColorDbl(1.0, 1.0, 1.0);
 					return ray;
 				}
-
-				reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, scene.lightSource);
+				if (usePointLight) {
+					reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, scene.lightSource);
+				}
+				else {
+					reflectionRay.rgb = currentTriangle.getLightColor(reflectionRay, glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99));
+				}
+				
 
 				// Remove shadow acne
 				reflectionRay.endPoint += currentTriangle.normal.direction * shadowBias;
@@ -121,38 +137,73 @@ ColorDbl getDirectLight(Ray ray) {
 	shadowRay.startPoint = ray.endPoint;
 	if (usePointLight) {
 		shadowRay.endPoint = scene.lightSource;
-	}
-	else {
-		// get random coord in light , x []
-		// set endpoint
-		shadowRay.endPoint = glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99);
-	}
-	
-	shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
 
-	float temp_t = INFINITY;
-	float distanceRaystartToLight = glm::length(shadowRay.endPoint - shadowRay.startPoint);
-	bool isOccluded = false; // Flag to prevent the sphere (mirror) to become occluded
+		shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
 
-	// Check if triangle is occluding
-	for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
-		Triangle currentTriangle = *it;
+		float temp_t = INFINITY;
+		float distanceRaystartToLight = glm::length(shadowRay.endPoint - shadowRay.startPoint);
+		bool isOccluded = false; // Flag to prevent the sphere (mirror) to become occluded
 
-		if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+		// Check if triangle is occluding
+		for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
+			Triangle currentTriangle = *it;
+
+			if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+				isOccluded = true;
+				break;
+			}
+		}
+		// Check if sphere is occluding
+		if (scene.sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
 			isOccluded = true;
-			break;
+		}
+
+		// Change color of ray to black because occluded by other object(s)
+		if (isOccluded && !ray.isIntersectingMirror) {
+			ray.rgb = ColorDbl(0.0, 0.0, 0.0);
 		}
 	}
-	// Check if sphere is occluding
-	if (scene.sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
-		isOccluded = true;
-	}
+	else {
+		int nShadowRays = 10;
+		ColorDbl directLight = ColorDbl(0, 0, 0);
+		// get random coord in light , x []
+		// set endpoint
 
-	// Change color of ray to black because occluded by other object(s)
-	if (isOccluded && !ray.isIntersectingMirror) {
-		ray.rgb = ColorDbl(0.0, 0.0, 0.0);
-	}
+		for (int k = 0; k < nShadowRays; k++) {
+			shadowRay.endPoint = glm::vec3(5.0 + ((double)rand() / (RAND_MAX)) * 2, -1.0 + ((double)rand() / (RAND_MAX)) * 2, 4.99);
 
+			shadowRay.direction.direction = glm::normalize(shadowRay.endPoint - shadowRay.startPoint);
+
+			float temp_t = INFINITY;
+			float distanceRaystartToLight = glm::length(shadowRay.endPoint - shadowRay.startPoint);
+			bool isOccluded = false; // Flag to prevent the sphere (mirror) to become occluded
+
+			// Check if triangle is occluding
+			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
+				Triangle currentTriangle = *it;
+
+				if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+					isOccluded = true;
+					break;
+				}
+			}
+			// Check if sphere is occluding
+			if (scene.sphere.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+				isOccluded = true;
+			}
+
+			// Change color of ray to black because occluded by other object(s)
+			if (isOccluded && !ray.isIntersectingMirror) {
+				directLight += ColorDbl(0.0, 0.0, 0.0);
+			}
+			else {
+				directLight += ray.rgb;
+			}
+		}
+		directLight /= nShadowRays;
+		ray.rgb = directLight;
+	}
+	
 	return ray.rgb;
 }
 
@@ -238,7 +289,7 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 50;
+	int sampels = 150;
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
@@ -255,14 +306,14 @@ void renderPixel(int i, int j) {
 
 		// If hit light
 		
-		if (firstRay.intersectingTriangle.materialType == 1) {
+		/*if (firstRay.intersectingTriangle.materialType == 1) {
 			// Store found color of pixel in rendered image
 			intensityImage[i][j][2] = 1.0 * 255;
 			intensityImage[i][j][1] = 1.0 * 255;
 			intensityImage[i][j][0] = 1.0 * 255;	
 
 			return;
-		}
+		}*/
 
 		ColorDbl directLight = getDirectLight(firstRay);
 		ColorDbl indirectLight = castRay(nextRay);
@@ -332,7 +383,7 @@ int main()
 	for (i = 0; i < WIDTH; i++) {
 		for (j = 0; j < HEIGHT; j++) {
 			for (int index = 0; index < 3; index++) {
-				image[i][j][index] = intensityImage[i][j][index] * 255.99/i_max;
+				image[i][j][index] = sqrt(intensityImage[i][j][index]/i_max) * 255.99;
 			}
 		}
 	}

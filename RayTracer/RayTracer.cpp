@@ -47,7 +47,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 1;
+const int MAX_DEPTH = 2;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -64,8 +64,8 @@ Ray findIntersection(Ray ray) {
 			ray.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 			// Intersecting a light source
-			if (currentTriangle.materialType == 1 && ray.depth != 0) {
-				ray.rgb = ColorDbl(1.0, 1.0, 1.0);
+			if (currentTriangle.materialType == 1) {
+				ray.rgb = ColorDbl(1.0, 1.0, 1.0) / M_PI;
 				return ray;
 			}
 			if (usePointLight) {
@@ -110,8 +110,8 @@ Ray findIntersection(Ray ray) {
 				reflectionRay.intersectingTriangle.normal.direction = currentTriangle.normal.direction;
 
 				// Intersecting a light source
-				if (currentTriangle.materialType == 1 && ray.depth != 0) {
-					ray.rgb = ColorDbl(1.0, 1.0, 1.0);
+				if (currentTriangle.materialType == 1) {
+					ray.rgb = ColorDbl(1.0, 1.0, 1.0) / M_PI;
 					return ray;
 				}
 				if (usePointLight) {
@@ -291,7 +291,7 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 150;
+	int sampels = 100;
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 

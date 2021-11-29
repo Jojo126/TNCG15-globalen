@@ -184,7 +184,7 @@ ColorDbl getDirectLight(Ray ray) {
 			for (std::vector<Triangle>::iterator it = scene.mTriangles.begin(); it != scene.mTriangles.end(); ++it) {
 				Triangle currentTriangle = *it;
 
-				if (currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
+				if (currentTriangle.materialType != 1 && currentTriangle.getIntersectionPoint(shadowRay, temp_t) && 0 < temp_t && temp_t < distanceRaystartToLight) {
 					isOccluded = true;
 					break;
 				}

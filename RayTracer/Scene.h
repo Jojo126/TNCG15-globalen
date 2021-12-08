@@ -67,6 +67,13 @@ class Scene
 			mVertices.push_back(Vertex(10.0, -2.0, -3.0));
 			mVertices.push_back(Vertex(10.0, 2.0, -5.0));
 			mVertices.push_back(Vertex(10.0, 2.0, -3.0));
+
+			// Area light
+			mVertices.push_back(Vertex(7.0, 1.0, 4.5)); //26
+			mVertices.push_back(Vertex(5.0, 1.0, 4.5));
+			mVertices.push_back(Vertex(5.0, -1.0, 4.5));
+			mVertices.push_back(Vertex(7.0, -1.0, 4.5));
+
 			// Square (debugging)
 			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(25), mVertices.at(23), green, Direction(mVertices.at(19), mVertices.at(23), mVertices.at(25))));
 			mTriangles.push_back(Triangle(mVertices.at(19), mVertices.at(21), mVertices.at(25), cyan, Direction(mVertices.at(19), mVertices.at(25), mVertices.at(21))));
@@ -89,6 +96,11 @@ class Scene
 			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(6), mVertices.at(8), white, Direction(mVertices.at(12), mVertices.at(6), mVertices.at(8))));
 			mTriangles.push_back(Triangle(mVertices.at(12), mVertices.at(8), mVertices.at(10), white, Direction(mVertices.at(12), mVertices.at(8), mVertices.at(10))));
 			
+			// Area light
+			mTriangles.push_back(Triangle(mVertices.at(26), mVertices.at(28), mVertices.at(27), white, Direction(mVertices.at(26), mVertices.at(28), mVertices.at(27)), 1));
+			mTriangles.push_back(Triangle(mVertices.at(26), mVertices.at(29), mVertices.at(28), red, Direction(mVertices.at(26), mVertices.at(29), mVertices.at(28)), 1));
+
+
 			// Floor
 			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(1), mVertices.at(11), white, Direction(mVertices.at(13), mVertices.at(1), mVertices.at(11))));
 			mTriangles.push_back(Triangle(mVertices.at(13), mVertices.at(3), mVertices.at(1), white, Direction(mVertices.at(13), mVertices.at(3), mVertices.at(1))));
@@ -118,7 +130,7 @@ class Scene
 			mTriangles.push_back(Triangle(mVertices.at(15), mVertices.at(17), mVertices.at(16), black, Direction(mVertices.at(15), mVertices.at(17), mVertices.at(16))));
 			
 			// Add sphere into scene
-			sphere.position = glm::vec3(4.0, -2.0, 1.0);
+			sphere.position = glm::vec3(3.0, 1.0, -1.0);
 			sphere.radius = 1.0;
 
 			std::cout << "Room created." << std::endl;

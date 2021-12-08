@@ -22,6 +22,7 @@ class Camera
 
 		glm::vec3 eye1 = glm::vec3(-2.0, 0.0, 0.0);
 		glm::vec3 eye2 = glm::vec3(-1.0, 0.0, 0.0);
+		//glm::vec3 eye2 = glm::vec3(0.5, 0.0, 0.0);
 		bool useFirstEye;
 		//Pixel image[800][800]; //borde hämta mått från RayTracer.cpp
 

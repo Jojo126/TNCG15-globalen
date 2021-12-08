@@ -15,16 +15,6 @@
 #include "Ray.h"
 #include "Sphere.h"
 
-
-// 1. DONE - Fixa perfect reflector
-//	1.1. add material properties?? istället för att hårdkoda att sfären är en perfect reflector
-// 2. DONE - hålla på med avstånd till ljuset o grejs
-// 3. DONE - shadow rays
-// 4. DONE - lambertian
-// 5. DONE? - monte carlo estimator (indirect light)
-// 6. triangel-ljuskälla i taket
-// 7. KLARA - RAPPORT :DDDDDD
-
 // Specs for bitmap
 const int HEIGHT = 800;
 const int WIDTH = 800;
@@ -211,17 +201,6 @@ ColorDbl getDirectLight(Ray ray) {
 }
 
 Ray getNewReflectedRay(Ray oldRay, double& cosTheta) {
-	/* Outlines for finding a new reflected ray
-	* 1. Create local coordinate system
-	*  - Project incoming ray onto surfaces plane (x or y...)
-	*  - Surfaces normal (z)
-	*  - crossproduct between two previous base-vectors (obs, want a right handed system)
-	* 2. Find transformation matrix M
-	* 3. Generate random spherical coordinates on intersections hemisphere
-	* 4. Convert spherical coordinates to local carteisan coordinates with spherical-to-carteisan equations
-	* 5. Convert local vector to global coordinate system with inverted M matrix
-	* 6. Return the found vector!
-	*/
 
 	// Create local system
 	glm::vec3 localSysAxisZ = oldRay.intersectingTriangle.normal.direction;
@@ -308,9 +287,7 @@ void renderPixel(int i, int j) {
 		firstRay = findIntersection(firstRay);
 
 		// If hit light
-		
 		if (firstRay.intersectingTriangle.materialType == 1 && !usePointLight) {
-			// Store found color of pixel in rendered image
 			intensityImage[i][j][2] = 1.0;
 			intensityImage[i][j][1] = 1.0;
 			intensityImage[i][j][0] = 1.0;	
@@ -394,13 +371,12 @@ int main()
 		}
 	}
 
+	std::cout << "Image rendered." << std::endl;
+
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	long elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
 
 	std::cout << "Time elapsed: " << floor(std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() / 60) << "." << elapsed_time % 60 << "min" << std::endl;
-	//std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
-
-	std::cout << "Image rendered." << std::endl;
 
 	// Save image into bitmap
 	generateBitmapImage((unsigned char*)image, WIDTH, HEIGHT, imageFileName);

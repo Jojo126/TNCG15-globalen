@@ -1,10 +1,5 @@
-/*
-It has three double precision variables that contain the intensities in the
-red, green and blue channel.
-*/
 #include <iostream>
 #pragma once
-
 
 class ColorDbl
 {
@@ -46,7 +41,6 @@ class ColorDbl
 			this->B /= inD;
 			return *this;
 		}
-
 
 		~ColorDbl() {};
 };

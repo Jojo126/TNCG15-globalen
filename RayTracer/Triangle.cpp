@@ -9,12 +9,11 @@ ColorDbl Triangle::getLightColor(Ray ray, glm::vec3 light, float lightIntensity)
     // Decrease intensity for incoming light when surface is far away from the lightsource 
     float r = glm::length(ray.endPoint - light);
     // incidentLightEnergy = lightIntensity * lightColor / (4 * PI * r^2), r = distance between the lightPos and the intersectionPoint
-    double falloff = 1.0 * lightIntensity / (1 + 4 * float(M_PI) * sqrt(r));
-    falloff = 1;
+    double falloff = 1.0 * lightIntensity / (1 + 4 * M_PI * sqrt(r));
+
     // Get surface normal and compare with light source normal to decrease incoming light from depending on the angle
     glm::vec3 lightDirection = glm::normalize(light - ray.endPoint);
     double cosTheta = std::max(0.0f, glm::dot(lightDirection, normal.direction));
-    cosTheta = 1;
 
     // Diffuse surface color = surfaceAlbedo / PI * incidentLightEnergy * cos(theta)
     return ColorDbl(rgb.R / M_PI * falloff * cosTheta, rgb.G / M_PI * falloff * cosTheta, rgb.B / M_PI * falloff * cosTheta);

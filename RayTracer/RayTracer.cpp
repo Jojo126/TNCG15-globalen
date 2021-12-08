@@ -291,7 +291,7 @@ ColorDbl castRay(Ray ray) {
 
 void renderPixel(int i, int j) {
 	float delta = 2.0f / WIDTH;
-	int sampels = 100;
+	int sampels = 150;
 
 	ColorDbl pixelColor = ColorDbl(0.0, 0.0, 0.0);
 
@@ -310,9 +310,9 @@ void renderPixel(int i, int j) {
 		
 		if (firstRay.intersectingTriangle.materialType == 1 && !usePointLight) {
 			// Store found color of pixel in rendered image
-			intensityImage[i][j][2] = 1.0 * 255;
-			intensityImage[i][j][1] = 1.0 * 255;
-			intensityImage[i][j][0] = 1.0 * 255;	
+			intensityImage[i][j][2] = 1.0;
+			intensityImage[i][j][1] = 1.0;
+			intensityImage[i][j][0] = 1.0;	
 
 			return;
 		}
@@ -330,9 +330,9 @@ void renderPixel(int i, int j) {
 	pixelColor /= sampels;
 
 	// Store found color of pixel in rendered image
-	intensityImage[i][j][2] = pixelColor.R * 255;
-	intensityImage[i][j][1] = pixelColor.G * 255;
-	intensityImage[i][j][0] = pixelColor.B * 255;
+	intensityImage[i][j][2] = pixelColor.R;
+	intensityImage[i][j][1] = pixelColor.G;
+	intensityImage[i][j][0] = pixelColor.B;
 }
 
 void rendersegment(int s, int e) {

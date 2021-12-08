@@ -6,6 +6,7 @@
 #include <thread>
 #include <array>
 #include <algorithm>
+#include <chrono>
 #include <glm/glm.hpp>
 
 #include "BmpSave.h"
@@ -47,7 +48,7 @@ char* imageFileName = (char*)"bitmapImage.bmp";
 // theory from scratchapixel.com (link: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows)
 float shadowBias = 1e-4;
 
-const int MAX_DEPTH = 2;
+const int MAX_DEPTH = 3;
 
 Ray findIntersection(Ray ray) {
 	float t_nearest = INFINITY;
@@ -349,6 +350,9 @@ int main()
 {
 	srand(static_cast <unsigned> (time(0))); // Init rand
 
+	std::cout << "Starting clock..." << std::endl;
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
 	// Draw/store image
 	std::cout << "Rendering image..." << std::endl;
 
@@ -389,6 +393,12 @@ int main()
 			}
 		}
 	}
+
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+	long elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+
+	std::cout << "Time elapsed: " << floor(std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() / 60) << "." << elapsed_time % 60 << "min" << std::endl;
+	//std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
 
 	std::cout << "Image rendered." << std::endl;
 
